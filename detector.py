@@ -25,7 +25,7 @@ class VoiceCloneDetector:
             results = self.pipe(payload)
             print(f"Raw model output: {results}") 
             
-            # Generalized check for synthetic speech labels
+            
             synthetic_keywords = ['fake', 'spoof', 'ai', 'synthetic']
             for result in results:
                 label_lower = result['label'].lower()

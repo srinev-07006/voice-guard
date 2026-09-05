@@ -1,0 +1,16 @@
+# Web Framework & Server
+fastapi
+uvicorn[standard]
+websockets
+python-multipart
+
+# Machine Learning & AI Models
+torch
+torchaudio
+transformers
+faster-whisper
+
+# Audio Processing & Signal Manipulation
+librosa
+soundfile
+numpy
