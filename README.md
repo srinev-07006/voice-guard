@@ -1,5 +1,5 @@
 # VoiceGuard 🛡️
-> **Smart India Hackathon 2026** | Problem Statement 26104: AI-Powered Real-Time Detection and Prevention of Voice Cloning Impersonation Attacks[cite: 2].
+> **Smart India Hackathon 2026** | Problem Statement 26104: AI-Powered Real-Time Detection and Prevention of Voice Cloning Impersonation Attacks.
 
 ## Project Overview
 VoiceGuard is a real-time deepfake voice defense system designed to intercept, analyze, and flag AI-generated audio during live telephonic and VoIP communications. Built to operate under strict sub-second latency constraints, this MVP utilizes a decoupled processing architecture:
