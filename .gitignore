@@ -1,0 +1,74 @@
+# =========================
+# Virtual Environments
+# =========================
+sih_env/
+venv/
+env/
+.env
+
+# =========================
+# Python & FastAPI
+# =========================
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.pytest_cache/
+htmlcov/
+.coverage
+.coverage.*
+.tox/
+.nox/
+
+# =========================
+# Machine Learning & Hugging Face
+# =========================
+# Ignore downloaded model weights if you ever save them locally
+*.safetensors
+*.bin
+*.h5
+*.pt
+*.ckpt
+models/
+huggingface/
+
+# =========================
+# Audio & Demo Data
+# =========================
+# Prevent pushing large or sensitive audio samples to GitHub
+*.wav
+*.mp3
+*.flac
+*.ogg
+audio_samples/
+test_data/
+temp_audio/
+
+# =========================
+# Frontend (React / Tailwind)
+# =========================
+node_modules/
+build/
+dist/
+.next/
+npm-debug.log
+yarn-error.log
+yarn.lock
+package-lock.json
+
+# =========================
+# OS & Editor Files
+# =========================
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# =========================
+# Logs & Databases
+# =========================
+*.log
+*.sqlite3
+db.sqlite3
