@@ -42,7 +42,7 @@ class VoiceCloneDetector:
 if __name__ == "__main__":
     detector = VoiceCloneDetector()
     
-    test_audio = r"D:\Projects\VeriVoice\audios\real\sample2.wav" 
+    test_audio = r"D:\Projects\VoiceGuard\audios\real\sample2.wav" 
     
     risk_score = detector.analyze_audio(test_audio)
     
