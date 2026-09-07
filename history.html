@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Call History | VoiceGuard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-white min-h-screen">
+
+    <div class="flex h-screen">
+        <!-- Sidebar -->
+        <aside class="w-64 bg-gray-800 border-r border-gray-700 flex flex-col">
+            <div class="p-6 border-b border-gray-700">
+                <div class="flex items-center space-x-3">
+                    <div class="w-10 h-10 bg-gradient-to-br from-blue-500 to-green-500 rounded-lg flex items-center justify-center">
+                        <i class="fa-solid fa-shield-halved text-white text-xl"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-xl font-bold">VoiceGuard</h1>
+                        <p class="text-xs text-gray-400">Team Domino</p>
+                    </div>
+                </div>
+            </div>
+
+            <nav class="flex-1 p-4 space-y-2">
+                <a href="dashboard.html" class="flex items-center space-x-3 px-4 py-3 rounded-lg text-gray-400 hover:bg-gray-700 hover:text-white transition">
+                    <i class="fa-solid fa-gauge-high"></i>
+                    <span>Dashboard</span>
+                </a>
+                <a href="analytics.html" class="flex items-center space-x-3 px-4 py-3 rounded-lg text-gray-400 hover:bg-gray-700 hover:text-white transition">
+                    <i class="fa-solid fa-chart-line"></i>
+                    <span>Analytics</span>
+                </a>
+                <a href="history.html" class="flex items-center space-x-3 px-4 py-3 rounded-lg bg-blue-600 text-white">
+                    <i class="fa-solid fa-clock-rotate-left"></i>
+                    <span>Call History</span>
+                </a>
+                <a href="settings.html" class="flex items-center space-x-3 px-4 py-3 rounded-lg text-gray-400 hover:bg-gray-700 hover:text-white transition">
+                    <i class="fa-solid fa-gear"></i>
+                    <span>Settings</span>
+                </a>
+                <a href="about.html" class="flex items-center space-x-3 px-4 py-3 rounded-lg text-gray-400 hover:bg-gray-700 hover:text-white transition">
+                    <i class="fa-solid fa-circle-info"></i>
+                    <span>About</span>
+                </a>
+            </nav>
+
+            <div class="p-4 border-t border-gray-700">
+                <div class="text-xs text-gray-500 mb-2">SYSTEM STATUS</div>
+                <div class="flex items-center space-x-2 text-sm">
+                    <div class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                    <span class="text-gray-400">Active</span>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="flex-1 overflow-y-auto">
+            <header class="bg-gray-800 border-b border-gray-700 px-8 py-4 flex justify-between items-center">
+                <div>
+                    <h2 class="text-2xl font-bold">Call History</h2>
+                    <p class="text-sm text-gray-400 mt-1">Complete detection log with detailed analysis</p>
+                </div>
+                <div class="flex space-x-3">
+                    <button onclick="exportHistory()" class="px-4 py-2 bg-blue-600 hover:bg-blue-500 rounded-lg text-sm font-semibold transition">
+                        <i class="fa-solid fa-download mr-2"></i>Export CSV
+                    </button>
+                    <button onclick="clearHistory()" class="px-4 py-2 bg-red-600 hover:bg-red-500 rounded-lg text-sm font-semibold transition">
+                        <i class="fa-solid fa-trash-can mr-2"></i>Clear All
+                    </button>
+                </div>
+            </header>
+
+            <div class="p-8">
+
+                <!-- Filter Bar -->
+                <div class="bg-gray-800 rounded-xl p-4 border border-gray-700 mb-6 flex items-center space-x-4">
+                    <div class="flex-1">
+                        <input type="text" id="searchInput" placeholder="Search by timestamp, action, or reason code..."
+                               class="w-full bg-gray-900 border border-gray-700 rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-blue-500">
+                    </div>
+                    <select id="filterRisk" class="bg-gray-900 border border-gray-700 rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-blue-500">
+                        <option value="all">All Risk Levels</option>
+                        <option value="LOW">Low Risk</option>
+                        <option value="MEDIUM">Medium Risk</option>
+                        <option value="HIGH">High Risk</option>
+                    </select>
+                    <select id="filterContext" class="bg-gray-900 border border-gray-700 rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-blue-500">
+                        <option value="all">All Context</option>
+                        <option value="true">Context Flagged</option>
+                        <option value="false">No Context Flag</option>
+                    </select>
+                </div>
+
+                <!-- History Table -->
+                <div class="bg-gray-800 rounded-xl border border-gray-700 overflow-hidden">
+                    <div class="overflow-x-auto">
+                        <table class="w-full">
+                            <thead class="bg-gray-900 border-b border-gray-700">
+                                <tr class="text-xs text-gray-400 uppercase">
+                                    <th class="text-left py-4 px-6">ID</th>
+                                    <th class="text-left py-4 px-6">Timestamp</th>
+                                    <th class="text-left py-4 px-6">Risk Score</th>
+                                    <th class="text-left py-4 px-6">Risk Level</th>
+                                    <th class="text-left py-4 px-6">Action</th>
+                                    <th class="text-left py-4 px-6">Recommendation</th>
+                                    <th class="text-left py-4 px-6">Context</th>
+                                    <th class="text-left py-4 px-6">Reason Code</th>
+                                </tr>
+                            </thead>
+                            <tbody id="historyTableBody" class="text-sm">
+                                <tr>
+                                    <td colspan="8" class="text-center py-12 text-gray-500">
+                                        <i class="fa-solid fa-inbox text-4xl mb-3 block"></i>
+                                        No call history available. Start monitoring to see detections here.
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Pagination -->
+                <div class="mt-6 flex justify-between items-center text-sm text-gray-400">
+                    <div>
+                        Showing <span id="showingRange">0</span> of <span id="totalRecords">0</span> records
+                    </div>
+                    <div class="flex space-x-2">
+                        <button onclick="previousPage()" class="px-4 py-2 bg-gray-800 hover:bg-gray-700 rounded-lg border border-gray-700 transition">
+                            Previous
+                        </button>
+                        <button onclick="nextPage()" class="px-4 py-2 bg-gray-800 hover:bg-gray-700 rounded-lg border border-gray-700 transition">
+                            Next
+                        </button>
+                    </div>
+                </div>
+
+            </div>
+        </main>
+    </div>
+
+    <script src="js/history.js"></script>
+</body>
+</html>

@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analytics | VoiceGuard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body class="bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-white min-h-screen">
+
+    <div class="flex h-screen">
+        <!-- Sidebar -->
+        <aside class="w-64 bg-gray-800 border-r border-gray-700 flex flex-col">
+            <div class="p-6 border-b border-gray-700">
+                <div class="flex items-center space-x-3">
+                    <div class="w-10 h-10 bg-gradient-to-br from-blue-500 to-green-500 rounded-lg flex items-center justify-center">
+                        <i class="fa-solid fa-shield-halved text-white text-xl"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-xl font-bold">VoiceGuard</h1>
+                        <p class="text-xs text-gray-400">Team Domino</p>
+                    </div>
+                </div>
+            </div>
+
+            <nav class="flex-1 p-4 space-y-2">
+                <a href="dashboard.html" class="flex items-center space-x-3 px-4 py-3 rounded-lg text-gray-400 hover:bg-gray-700 hover:text-white transition">
+                    <i class="fa-solid fa-gauge-high"></i>
+                    <span>Dashboard</span>
+                </a>
+                <a href="analytics.html" class="flex items-center space-x-3 px-4 py-3 rounded-lg bg-blue-600 text-white">
+                    <i class="fa-solid fa-chart-line"></i>
+                    <span>Analytics</span>
+                </a>
+                <a href="history.html" class="flex items-center space-x-3 px-4 py-3 rounded-lg text-gray-400 hover:bg-gray-700 hover:text-white transition">
+                    <i class="fa-solid fa-clock-rotate-left"></i>
+                    <span>Call History</span>
+                </a>
+                <a href="settings.html" class="flex items-center space-x-3 px-4 py-3 rounded-lg text-gray-400 hover:bg-gray-700 hover:text-white transition">
+                    <i class="fa-solid fa-gear"></i>
+                    <span>Settings</span>
+                </a>
+                <a href="about.html" class="flex items-center space-x-3 px-4 py-3 rounded-lg text-gray-400 hover:bg-gray-700 hover:text-white transition">
+                    <i class="fa-solid fa-circle-info"></i>
+                    <span>About</span>
+                </a>
+            </nav>
+
+            <div class="p-4 border-t border-gray-700">
+                <div class="text-xs text-gray-500 mb-2">SYSTEM STATUS</div>
+                <div class="flex items-center space-x-2 text-sm">
+                    <div class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                    <span class="text-gray-400">Active</span>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="flex-1 overflow-y-auto">
+            <header class="bg-gray-800 border-b border-gray-700 px-8 py-4">
+                <h2 class="text-2xl font-bold">Analytics Dashboard</h2>
+                <p class="text-sm text-gray-400 mt-1">Detection performance & trend analysis</p>
+            </header>
+
+            <div class="p-8 space-y-6">
+
+                <!-- Summary Cards -->
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+                    <div class="bg-gray-800 rounded-xl p-6 border border-gray-700">
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="text-sm text-gray-400">Total Processed</span>
+                            <i class="fa-solid fa-wave-square text-blue-400"></i>
+                        </div>
+                        <div class="text-3xl font-bold" id="totalProcessed">0</div>
+                        <div class="text-xs text-gray-500 mt-1">Audio chunks analyzed</div>
+                    </div>
+
+                    <div class="bg-gray-800 rounded-xl p-6 border border-gray-700">
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="text-sm text-gray-400">Detection Rate</span>
+                            <i class="fa-solid fa-percentage text-red-400"></i>
+                        </div>
+                        <div class="text-3xl font-bold text-red-400" id="detectionRate">0%</div>
+                        <div class="text-xs text-gray-500 mt-1">Synthetic audio found</div>
+                    </div>
+
+                    <div class="bg-gray-800 rounded-xl p-6 border border-gray-700">
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="text-sm text-gray-400">Avg Confidence</span>
+                            <i class="fa-solid fa-chart-simple text-green-400"></i>
+                        </div>
+                        <div class="text-3xl font-bold" id="avgConfidence">0%</div>
+                        <div class="text-xs text-gray-500 mt-1">Model certainty</div>
+                    </div>
+
+                    <div class="bg-gray-800 rounded-xl p-6 border border-gray-700">
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="text-sm text-gray-400">False Positive Rate</span>
+                            <i class="fa-solid fa-bullseye text-yellow-400"></i>
+                        </div>
+                        <div class="text-3xl font-bold text-yellow-400" id="falsePositiveRate">--</div>
+                        <div class="text-xs text-gray-500 mt-1">Requires validation</div>
+                    </div>
+                </div>
+
+                <!-- Charts Section -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <!-- Risk Score Distribution -->
+                    <div class="bg-gray-800 rounded-xl p-6 border border-gray-700">
+                        <h3 class="text-lg font-semibold mb-4">Risk Score Distribution</h3>
+                        <canvas id="riskDistributionChart"></canvas>
+                    </div>
+
+                    <!-- Detection Trends -->
+                    <div class="bg-gray-800 rounded-xl p-6 border border-gray-700">
+                        <h3 class="text-lg font-semibold mb-4">Detection Timeline</h3>
+                        <canvas id="timelineChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Risk Level Breakdown -->
+                <div class="bg-gray-800 rounded-xl p-6 border border-gray-700">
+                    <h3 class="text-lg font-semibold mb-4">Risk Level Breakdown</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div class="bg-gray-900 p-4 rounded-lg border-l-4 border-green-500">
+                            <div class="flex items-center justify-between mb-2">
+                                <span class="text-sm text-gray-400">LOW RISK</span>
+                                <i class="fa-solid fa-check-circle text-green-500"></i>
+                            </div>
+                            <div class="text-2xl font-bold text-green-400" id="lowRiskCount">0</div>
+                            <div class="text-xs text-gray-500 mt-1">Clean audio profile</div>
+                        </div>
+
+                        <div class="bg-gray-900 p-4 rounded-lg border-l-4 border-yellow-500">
+                            <div class="flex items-center justify-between mb-2">
+                                <span class="text-sm text-gray-400">MEDIUM RISK</span>
+                                <i class="fa-solid fa-exclamation-triangle text-yellow-500"></i>
+                            </div>
+                            <div class="text-2xl font-bold text-yellow-400" id="mediumRiskCount">0</div>
+                            <div class="text-xs text-gray-500 mt-1">Elevated risk profile</div>
+                        </div>
+
+                        <div class="bg-gray-900 p-4 rounded-lg border-l-4 border-red-500">
+                            <div class="flex items-center justify-between mb-2">
+                                <span class="text-sm text-gray-400">HIGH RISK</span>
+                                <i class="fa-solid fa-shield-exclamation text-red-500"></i>
+                            </div>
+                            <div class="text-2xl font-bold text-red-400" id="highRiskCountAnalytics">0</div>
+                            <div class="text-xs text-gray-500 mt-1">Synthetic detected</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Performance Metrics -->
+                <div class="bg-gray-800 rounded-xl p-6 border border-gray-700">
+                    <h3 class="text-lg font-semibold mb-4">Model Performance</h3>
+                    <canvas id="performanceChart"></canvas>
+                </div>
+
+            </div>
+        </main>
+    </div>
+
+    <script src="js/analytics.js"></script>
+</body>
+</html>

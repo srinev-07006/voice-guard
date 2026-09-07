@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VoiceGuard Dashboard | Real-Time Deepfake Detection</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        .pulse-ring {
+            animation: pulse-ring 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+        @keyframes pulse-ring {
+            0%, 100% {
+                opacity: 1;
+                transform: scale(1);
+            }
+            50% {
+                opacity: 0.5;
+                transform: scale(1.1);
+            }
+        }
+        .waveform {
+            display: flex;
+            align-items: center;
+            height: 40px;
+            gap: 2px;
+        }
+        .waveform-bar {
+            width: 3px;
+            background: linear-gradient(180deg, #10b981 0%, #059669 100%);
+            border-radius: 3px;
+            animation: wave 1s ease-in-out infinite;
+        }
+        @keyframes wave {
+            0%, 100% { height: 10%; }
+            50% { height: 100%; }
+        }
+        .gradient-border {
+            position: relative;
+            background: linear-gradient(145deg, #1f2937, #111827);
+            border-radius: 1rem;
+        }
+        .gradient-border::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: 1rem;
+            padding: 2px;
+            background: linear-gradient(145deg, #3b82f6, #10b981);
+            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            -webkit-mask-composite: xor;
+            mask-composite: exclude;
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-white min-h-screen">
+
+    <!-- Sidebar Navigation -->
+    <div class="flex h-screen">
+        <aside class="w-64 bg-gray-800 border-r border-gray-700 flex flex-col">
+            <!-- Logo -->
+            <div class="p-6 border-b border-gray-700">
+                <div class="flex items-center space-x-3">
+                    <div class="w-10 h-10 bg-gradient-to-br from-blue-500 to-green-500 rounded-lg flex items-center justify-center">
+                        <i class="fa-solid fa-shield-halved text-white text-xl"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-xl font-bold">VoiceGuard</h1>
+                        <p class="text-xs text-gray-400">Team Domino</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Navigation Menu -->
+            <nav class="flex-1 p-4 space-y-2">
+                <a href="dashboard.html" class="flex items-center space-x-3 px-4 py-3 rounded-lg bg-blue-600 text-white">
+                    <i class="fa-solid fa-gauge-high"></i>
+                    <span>Dashboard</span>
+                </a>
+                <a href="analytics.html" class="flex items-center space-x-3 px-4 py-3 rounded-lg text-gray-400 hover:bg-gray-700 hover:text-white transition">
+                    <i class="fa-solid fa-chart-line"></i>
+                    <span>Analytics</span>
+                </a>
+                <a href="history.html" class="flex items-center space-x-3 px-4 py-3 rounded-lg text-gray-400 hover:bg-gray-700 hover:text-white transition">
+                    <i class="fa-solid fa-clock-rotate-left"></i>
+                    <span>Call History</span>
+                </a>
+                <a href="settings.html" class="flex items-center space-x-3 px-4 py-3 rounded-lg text-gray-400 hover:bg-gray-700 hover:text-white transition">
+                    <i class="fa-solid fa-gear"></i>
+                    <span>Settings</span>
+                </a>
+                <a href="about.html" class="flex items-center space-x-3 px-4 py-3 rounded-lg text-gray-400 hover:bg-gray-700 hover:text-white transition">
+                    <i class="fa-solid fa-circle-info"></i>
+                    <span>About</span>
+                </a>
+            </nav>
+
+            <!-- System Status -->
+            <div class="p-4 border-t border-gray-700">
+                <div class="text-xs text-gray-500 mb-2">SYSTEM STATUS</div>
+                <div class="flex items-center space-x-2 text-sm" id="sidebarStatus">
+                    <div class="w-2 h-2 bg-red-500 rounded-full"></div>
+                    <span class="text-gray-400">Disconnected</span>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="flex-1 overflow-y-auto">
+            <!-- Top Bar -->
+            <header class="bg-gray-800 border-b border-gray-700 px-8 py-4 flex justify-between items-center">
+                <div>
+                    <h2 class="text-2xl font-bold">Live Call Monitoring</h2>
+                    <p class="text-sm text-gray-400 mt-1">Real-time deepfake voice detection & analysis</p>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <div class="text-right">
+                        <div class="text-xs text-gray-500">Current Time</div>
+                        <div class="text-sm font-mono" id="currentTime">--:--:--</div>
+                    </div>
+                    <button id="recordBtn" class="bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 text-white font-bold py-3 px-6 rounded-lg transition duration-300 flex items-center shadow-lg">
+                        <i class="fa-solid fa-microphone mr-2"></i>
+                        <span>Start Call</span>
+                    </button>
+                </div>
+            </header>
+
+            <!-- Dashboard Content -->
+            <div class="p-8 space-y-6">
+
+                <!-- Primary Risk Display -->
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+                    <!-- Main Risk Score -->
+                    <div class="lg:col-span-2 gradient-border p-8">
+                        <div class="flex justify-between items-start mb-6">
+                            <div>
+                                <h3 class="text-lg font-semibold text-gray-300">Deepfake Detection Score</h3>
+                                <p class="text-sm text-gray-500 mt-1">AI-powered acoustic analysis</p>
+                            </div>
+                            <div class="px-3 py-1 rounded-full text-xs font-semibold bg-gray-700 text-gray-300" id="statusBadge">
+                                WAITING FOR SIGNAL
+                            </div>
+                        </div>
+
+                        <div class="flex items-center justify-center space-x-12">
+                            <!-- Circular Progress -->
+                            <div class="relative w-48 h-48">
+                                <svg class="transform -rotate-90 w-48 h-48">
+                                    <circle cx="96" cy="96" r="88" stroke="#374151" stroke-width="12" fill="none" />
+                                    <circle id="progressCircle" cx="96" cy="96" r="88" stroke="#10b981" stroke-width="12" fill="none"
+                                            stroke-dasharray="552.92" stroke-dashoffset="552.92" stroke-linecap="round"
+                                            class="transition-all duration-500" />
+                                </svg>
+                                <div class="absolute inset-0 flex flex-col items-center justify-center">
+                                    <div class="text-5xl font-bold" id="scoreDisplay">0%</div>
+                                    <div class="text-xs text-gray-500 mt-1">Risk Level</div>
+                                </div>
+                            </div>
+
+                            <!-- Waveform Visualization -->
+                            <div class="flex-1">
+                                <div class="text-sm text-gray-400 mb-2">Audio Input Signal</div>
+                                <div class="waveform justify-center" id="waveform">
+                                    <div class="waveform-bar" style="animation-delay: 0s;"></div>
+                                    <div class="waveform-bar" style="animation-delay: 0.1s;"></div>
+                                    <div class="waveform-bar" style="animation-delay: 0.2s;"></div>
+                                    <div class="waveform-bar" style="animation-delay: 0.3s;"></div>
+                                    <div class="waveform-bar" style="animation-delay: 0.4s;"></div>
+                                    <div class="waveform-bar" style="animation-delay: 0.5s;"></div>
+                                    <div class="waveform-bar" style="animation-delay: 0.4s;"></div>
+                                    <div class="waveform-bar" style="animation-delay: 0.3s;"></div>
+                                    <div class="waveform-bar" style="animation-delay: 0.2s;"></div>
+                                    <div class="waveform-bar" style="animation-delay: 0.1s;"></div>
+                                </div>
+                                <div class="text-xs text-gray-500 mt-2" id="audioInfo">16 kHz • Mono • WebSocket Stream</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Decision Ladder -->
+                    <div class="bg-gray-800 rounded-xl p-6 border border-gray-700">
+                        <h3 class="text-lg font-semibold mb-4 text-gray-300">Decision Ladder</h3>
+
+                        <div class="space-y-4">
+                            <div class="p-4 bg-gray-900 rounded-lg border-l-4 border-gray-700" id="decisionPanel">
+                                <div class="text-xs text-gray-500 mb-1">RECOMMENDED ACTION</div>
+                                <div class="text-2xl font-bold mb-3" id="actionDisplay">--</div>
+
+                                <div class="text-sm text-gray-400 mb-3" id="recommendationDisplay">
+                                    Awaiting audio stream...
+                                </div>
+
+                                <div class="flex items-center justify-between pt-3 border-t border-gray-800">
+                                    <span class="text-xs text-gray-500">REASON CODE</span>
+                                    <span class="text-xs font-mono text-blue-400" id="reasonDisplay">N/A</span>
+                                </div>
+                            </div>
+
+                            <!-- Context Flag -->
+                            <div class="p-4 bg-gray-900 rounded-lg">
+                                <div class="flex items-center justify-between mb-2">
+                                    <span class="text-xs text-gray-500">CONTEXT ANALYSIS</span>
+                                    <i class="fa-solid fa-brain text-purple-400"></i>
+                                </div>
+                                <div class="text-sm" id="contextDisplay">
+                                    <span class="text-gray-400">No urgent keywords detected</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Real-time Statistics -->
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+                    <div class="bg-gray-800 rounded-xl p-6 border border-gray-700">
+                        <div class="flex items-center justify-between mb-2">
+                            <div class="text-sm text-gray-400">Total Calls</div>
+                            <i class="fa-solid fa-phone text-blue-400"></i>
+                        </div>
+                        <div class="text-3xl font-bold" id="totalCalls">0</div>
+                        <div class="text-xs text-gray-500 mt-1">This session</div>
+                    </div>
+
+                    <div class="bg-gray-800 rounded-xl p-6 border border-gray-700">
+                        <div class="flex items-center justify-between mb-2">
+                            <div class="text-sm text-gray-400">High Risk Detected</div>
+                            <i class="fa-solid fa-triangle-exclamation text-red-400"></i>
+                        </div>
+                        <div class="text-3xl font-bold text-red-400" id="highRiskCount">0</div>
+                        <div class="text-xs text-gray-500 mt-1">Synthetic audio flagged</div>
+                    </div>
+
+                    <div class="bg-gray-800 rounded-xl p-6 border border-gray-700">
+                        <div class="flex items-center justify-between mb-2">
+                            <div class="text-sm text-gray-400">Avg Latency</div>
+                            <i class="fa-solid fa-bolt text-yellow-400"></i>
+                        </div>
+                        <div class="text-3xl font-bold" id="avgLatency">--</div>
+                        <div class="text-xs text-gray-500 mt-1">Processing time</div>
+                    </div>
+
+                    <div class="bg-gray-800 rounded-xl p-6 border border-gray-700">
+                        <div class="flex items-center justify-between mb-2">
+                            <div class="text-sm text-gray-400">Uptime</div>
+                            <i class="fa-solid fa-clock text-green-400"></i>
+                        </div>
+                        <div class="text-3xl font-bold" id="uptime">00:00</div>
+                        <div class="text-xs text-gray-500 mt-1">Session duration</div>
+                    </div>
+                </div>
+
+                <!-- Recent Detection Log -->
+                <div class="bg-gray-800 rounded-xl p-6 border border-gray-700">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-lg font-semibold text-gray-300">Detection Log</h3>
+                        <button class="text-xs text-blue-400 hover:text-blue-300" onclick="clearLog()">
+                            <i class="fa-solid fa-trash-can mr-1"></i>Clear
+                        </button>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-sm">
+                            <thead class="text-xs text-gray-500 border-b border-gray-700">
+                                <tr>
+                                    <th class="text-left py-2">Timestamp</th>
+                                    <th class="text-left py-2">Risk Score</th>
+                                    <th class="text-left py-2">Level</th>
+                                    <th class="text-left py-2">Action</th>
+                                    <th class="text-left py-2">Context</th>
+                                </tr>
+                            </thead>
+                            <tbody id="logTableBody" class="text-gray-300">
+                                <tr>
+                                    <td colspan="5" class="text-center py-8 text-gray-500">No detections yet. Start a call to begin monitoring.</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+            </div>
+        </main>
+    </div>
+
+    <script src="js/dashboard.js"></script>
+</body>
+</html>

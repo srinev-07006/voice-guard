@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Settings | VoiceGuard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-white min-h-screen">
+
+    <div class="flex h-screen">
+        <!-- Sidebar -->
+        <aside class="w-64 bg-gray-800 border-r border-gray-700 flex flex-col">
+            <div class="p-6 border-b border-gray-700">
+                <div class="flex items-center space-x-3">
+                    <div class="w-10 h-10 bg-gradient-to-br from-blue-500 to-green-500 rounded-lg flex items-center justify-center">
+                        <i class="fa-solid fa-shield-halved text-white text-xl"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-xl font-bold">VoiceGuard</h1>
+                        <p class="text-xs text-gray-400">Team Domino</p>
+                    </div>
+                </div>
+            </div>
+
+            <nav class="flex-1 p-4 space-y-2">
+                <a href="dashboard.html" class="flex items-center space-x-3 px-4 py-3 rounded-lg text-gray-400 hover:bg-gray-700 hover:text-white transition">
+                    <i class="fa-solid fa-gauge-high"></i>
+                    <span>Dashboard</span>
+                </a>
+                <a href="analytics.html" class="flex items-center space-x-3 px-4 py-3 rounded-lg text-gray-400 hover:bg-gray-700 hover:text-white transition">
+                    <i class="fa-solid fa-chart-line"></i>
+                    <span>Analytics</span>
+                </a>
+                <a href="history.html" class="flex items-center space-x-3 px-4 py-3 rounded-lg text-gray-400 hover:bg-gray-700 hover:text-white transition">
+                    <i class="fa-solid fa-clock-rotate-left"></i>
+                    <span>Call History</span>
+                </a>
+                <a href="settings.html" class="flex items-center space-x-3 px-4 py-3 rounded-lg bg-blue-600 text-white">
+                    <i class="fa-solid fa-gear"></i>
+                    <span>Settings</span>
+                </a>
+                <a href="about.html" class="flex items-center space-x-3 px-4 py-3 rounded-lg text-gray-400 hover:bg-gray-700 hover:text-white transition">
+                    <i class="fa-solid fa-circle-info"></i>
+                    <span>About</span>
+                </a>
+            </nav>
+
+            <div class="p-4 border-t border-gray-700">
+                <div class="text-xs text-gray-500 mb-2">SYSTEM STATUS</div>
+                <div class="flex items-center space-x-2 text-sm">
+                    <div class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                    <span class="text-gray-400">Active</span>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="flex-1 overflow-y-auto">
+            <header class="bg-gray-800 border-b border-gray-700 px-8 py-4">
+                <h2 class="text-2xl font-bold">Settings</h2>
+                <p class="text-sm text-gray-400 mt-1">Configure detection thresholds and system preferences</p>
+            </header>
+
+            <div class="p-8 space-y-6">
+
+                <!-- Detection Thresholds -->
+                <div class="bg-gray-800 rounded-xl p-6 border border-gray-700">
+                    <h3 class="text-lg font-semibold mb-4 flex items-center">
+                        <i class="fa-solid fa-sliders mr-2 text-blue-400"></i>
+                        Detection Thresholds
+                    </h3>
+
+                    <div class="space-y-6">
+                        <div>
+                            <label class="block text-sm text-gray-400 mb-2">
+                                High Risk Threshold (Synthetic Detection)
+                            </label>
+                            <div class="flex items-center space-x-4">
+                                <input type="range" id="highThreshold" min="50" max="100" value="70"
+                                       class="flex-1 h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer">
+                                <span class="text-lg font-bold text-red-400 w-16" id="highThresholdValue">70%</span>
+                            </div>
+                            <p class="text-xs text-gray-500 mt-2">Scores above this trigger immediate HOLD action</p>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm text-gray-400 mb-2">
+                                Medium Risk Threshold (Elevated Risk)
+                            </label>
+                            <div class="flex items-center space-x-4">
+                                <input type="range" id="mediumThreshold" min="20" max="70" value="40"
+                                       class="flex-1 h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer">
+                                <span class="text-lg font-bold text-yellow-400 w-16" id="mediumThresholdValue">40%</span>
+                            </div>
+                            <p class="text-xs text-gray-500 mt-2">Scores above this trigger VERIFY action</p>
+                        </div>
+
+                        <div class="flex items-center justify-between p-4 bg-gray-900 rounded-lg">
+                            <div>
+                                <div class="text-sm font-semibold">Context-Aware Boost</div>
+                                <div class="text-xs text-gray-500 mt-1">Elevate risk when urgent keywords detected</div>
+                            </div>
+                            <label class="relative inline-flex items-center cursor-pointer">
+                                <input type="checkbox" id="contextBoost" checked class="sr-only peer">
+                                <div class="w-11 h-6 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Audio Processing -->
+                <div class="bg-gray-800 rounded-xl p-6 border border-gray-700">
+                    <h3 class="text-lg font-semibold mb-4 flex items-center">
+                        <i class="fa-solid fa-waveform-lines mr-2 text-green-400"></i>
+                        Audio Processing
+                    </h3>
+
+                    <div class="space-y-6">
+                        <div>
+                            <label class="block text-sm text-gray-400 mb-2">
+                                Chunk Duration (seconds)
+                            </label>
+                            <select id="chunkDuration" class="w-full bg-gray-900 border border-gray-700 rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-blue-500">
+                                <option value="2.0">2.0s (Fast, Less Accurate)</option>
+                                <option value="2.5" selected>2.5s (Balanced - Recommended)</option>
+                                <option value="3.0">3.0s (Slower, More Accurate)</option>
+                            </select>
+                            <p class="text-xs text-gray-500 mt-2">Window size for acoustic analysis</p>
+                        </div>
+
+                        <div class="flex items-center justify-between p-4 bg-gray-900 rounded-lg">
+                            <div>
+                                <div class="text-sm font-semibold">Noise Suppression</div>
+                                <div class="text-xs text-gray-500 mt-1">Reduce background noise in audio stream</div>
+                            </div>
+                            <label class="relative inline-flex items-center cursor-pointer">
+                                <input type="checkbox" id="noiseSuppression" checked class="sr-only peer">
+                                <div class="w-11 h-6 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                            </label>
+                        </div>
+
+                        <div class="flex items-center justify-between p-4 bg-gray-900 rounded-lg">
+                            <div>
+                                <div class="text-sm font-semibold">Echo Cancellation</div>
+                                <div class="text-xs text-gray-500 mt-1">Remove echo from call audio</div>
+                            </div>
+                            <label class="relative inline-flex items-center cursor-pointer">
+                                <input type="checkbox" id="echoCancellation" checked class="sr-only peer">
+                                <div class="w-11 h-6 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Notifications & Alerts -->
+                <div class="bg-gray-800 rounded-xl p-6 border border-gray-700">
+                    <h3 class="text-lg font-semibold mb-4 flex items-center">
+                        <i class="fa-solid fa-bell mr-2 text-yellow-400"></i>
+                        Notifications & Alerts
+                    </h3>
+
+                    <div class="space-y-4">
+                        <div class="flex items-center justify-between p-4 bg-gray-900 rounded-lg">
+                            <div>
+                                <div class="text-sm font-semibold">Browser Notifications</div>
+                                <div class="text-xs text-gray-500 mt-1">Desktop alerts for high-risk detections</div>
+                            </div>
+                            <label class="relative inline-flex items-center cursor-pointer">
+                                <input type="checkbox" id="browserNotifications" class="sr-only peer">
+                                <div class="w-11 h-6 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                            </label>
+                        </div>
+
+                        <div class="flex items-center justify-between p-4 bg-gray-900 rounded-lg">
+                            <div>
+                                <div class="text-sm font-semibold">Audio Alerts</div>
+                                <div class="text-xs text-gray-500 mt-1">Play sound on detection events</div>
+                            </div>
+                            <label class="relative inline-flex items-center cursor-pointer">
+                                <input type="checkbox" id="audioAlerts" class="sr-only peer">
+                                <div class="w-11 h-6 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                            </label>
+                        </div>
+
+                        <div class="flex items-center justify-between p-4 bg-gray-900 rounded-lg">
+                            <div>
+                                <div class="text-sm font-semibold">Log All Detections</div>
+                                <div class="text-xs text-gray-500 mt-1">Save all detection events to history</div>
+                            </div>
+                            <label class="relative inline-flex items-center cursor-pointer">
+                                <input type="checkbox" id="logAll" checked class="sr-only peer">
+                                <div class="w-11 h-6 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Privacy & Data -->
+                <div class="bg-gray-800 rounded-xl p-6 border border-gray-700">
+                    <h3 class="text-lg font-semibold mb-4 flex items-center">
+                        <i class="fa-solid fa-shield-check mr-2 text-purple-400"></i>
+                        Privacy & Data Protection
+                    </h3>
+
+                    <div class="space-y-4">
+                        <div class="p-4 bg-green-900 bg-opacity-20 border border-green-700 rounded-lg">
+                            <div class="flex items-start space-x-3">
+                                <i class="fa-solid fa-check-circle text-green-500 mt-1"></i>
+                                <div>
+                                    <div class="text-sm font-semibold text-green-400">DPDP Act 2023 Compliant</div>
+                                    <div class="text-xs text-gray-400 mt-1">
+                                        Audio streams are processed in volatile RAM only. No raw audio files are saved to disk.
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="p-4 bg-gray-900 rounded-lg">
+                            <div class="text-sm font-semibold mb-2">Data Retention</div>
+                            <select id="dataRetention" class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-blue-500">
+                                <option value="session">Current Session Only</option>
+                                <option value="7">7 Days</option>
+                                <option value="30" selected>30 Days</option>
+                                <option value="90">90 Days</option>
+                            </select>
+                            <p class="text-xs text-gray-500 mt-2">How long to keep detection logs in browser storage</p>
+                        </div>
+
+                        <button onclick="clearAllData()" class="w-full px-4 py-3 bg-red-600 hover:bg-red-500 rounded-lg text-sm font-semibold transition">
+                            <i class="fa-solid fa-trash-can mr-2"></i>Clear All Local Data
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Backend Configuration -->
+                <div class="bg-gray-800 rounded-xl p-6 border border-gray-700">
+                    <h3 class="text-lg font-semibold mb-4 flex items-center">
+                        <i class="fa-solid fa-server mr-2 text-cyan-400"></i>
+                        Backend Configuration
+                    </h3>
+
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm text-gray-400 mb-2">WebSocket Server URL</label>
+                            <input type="text" id="serverUrl" value="ws://127.0.0.1:8000/ws/audio"
+                                   class="w-full bg-gray-900 border border-gray-700 rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-blue-500 font-mono">
+                            <p class="text-xs text-gray-500 mt-2">VoiceGuard inference engine endpoint</p>
+                        </div>
+
+                        <button onclick="testConnection()" class="w-full px-4 py-3 bg-blue-600 hover:bg-blue-500 rounded-lg text-sm font-semibold transition">
+                            <i class="fa-solid fa-plug mr-2"></i>Test Connection
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Save Button -->
+                <div class="flex justify-end space-x-4">
+                    <button onclick="resetDefaults()" class="px-6 py-3 bg-gray-700 hover:bg-gray-600 rounded-lg font-semibold transition">
+                        Reset to Defaults
+                    </button>
+                    <button onclick="saveSettings()" class="px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 rounded-lg font-semibold transition">
+                        <i class="fa-solid fa-floppy-disk mr-2"></i>Save Settings
+                    </button>
+                </div>
+
+            </div>
+        </main>
+    </div>
+
+    <script src="js/settings.js"></script>
+</body>
+</html>

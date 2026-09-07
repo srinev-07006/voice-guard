@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VoiceGuard - Installation Guide</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .code-block {
+            background: #1f2937;
+            border-left: 4px solid #3b82f6;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            font-family: 'Courier New', monospace;
+            overflow-x: auto;
+        }
+        .step-number {
+            width: 3rem;
+            height: 3rem;
+            background: linear-gradient(135deg, #3b82f6 0%, #10b981 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            font-weight: bold;
+            flex-shrink: 0;
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-white min-h-screen p-8">
+
+    <div class="max-w-4xl mx-auto">
+        <!-- Header -->
+        <div class="text-center mb-12">
+            <div class="w-20 h-20 bg-gradient-to-br from-blue-500 to-green-500 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                <i class="fa-solid fa-shield-halved text-white text-4xl"></i>
+            </div>
+            <h1 class="text-4xl font-bold mb-2">VoiceGuard Setup Guide</h1>
+            <p class="text-xl text-gray-400">Get started in 3 minutes</p>
+            <div class="mt-4 inline-block px-4 py-2 bg-blue-600 rounded-full text-sm">
+                Smart India Hackathon 2026 • Problem Statement 26104
+            </div>
+        </div>
+
+        <!-- Quick Links -->
+        <div class="grid grid-cols-2 gap-4 mb-8">
+            <a href="dashboard.html" class="bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 p-6 rounded-xl text-center transition">
+                <i class="fa-solid fa-rocket text-3xl mb-2"></i>
+                <div class="font-bold">Launch Dashboard</div>
+                <div class="text-xs text-blue-100 mt-1">Skip to main app</div>
+            </a>
+            <a href="#step1" class="bg-gray-800 hover:bg-gray-700 p-6 rounded-xl text-center transition border border-gray-700">
+                <i class="fa-solid fa-book text-3xl mb-2 text-green-400"></i>
+                <div class="font-bold">Read Setup Guide</div>
+                <div class="text-xs text-gray-400 mt-1">First time user</div>
+            </a>
+        </div>
+
+        <!-- Prerequisites -->
+        <div class="bg-gray-800 rounded-xl p-6 border border-gray-700 mb-8">
+            <h2 class="text-2xl font-bold mb-4 flex items-center">
+                <i class="fa-solid fa-clipboard-check text-yellow-400 mr-3"></i>
+                Prerequisites
+            </h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="flex items-start space-x-3">
+                    <i class="fa-brands fa-python text-blue-400 text-2xl mt-1"></i>
+                    <div>
+                        <div class="font-semibold">Python 3.8+</div>
+                        <div class="text-sm text-gray-400">Required for backend</div>
+                    </div>
+                </div>
+                <div class="flex items-start space-x-3">
+                    <i class="fa-brands fa-chrome text-green-400 text-2xl mt-1"></i>
+                    <div>
+                        <div class="font-semibold">Modern Browser</div>
+                        <div class="text-sm text-gray-400">Chrome/Edge recommended</div>
+                    </div>
+                </div>
+                <div class="flex items-start space-x-3">
+                    <i class="fa-solid fa-microphone text-red-400 text-2xl mt-1"></i>
+                    <div>
+                        <div class="font-semibold">Microphone Access</div>
+                        <div class="text-sm text-gray-400">For audio capture</div>
+                    </div>
+                </div>
+                <div class="flex items-start space-x-3">
+                    <i class="fa-solid fa-memory text-purple-400 text-2xl mt-1"></i>
+                    <div>
+                        <div class="font-semibold">~2GB RAM</div>
+                        <div class="text-sm text-gray-400">For ML model</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Step 1 -->
+        <div id="step1" class="bg-gray-800 rounded-xl p-6 border border-gray-700 mb-8">
+            <div class="flex items-start space-x-4 mb-4">
+                <div class="step-number">1</div>
+                <div>
+                    <h2 class="text-2xl font-bold">Install Backend Dependencies</h2>
+                    <p class="text-gray-400">Set up Python environment and packages</p>
+                </div>
+            </div>
+
+            <div class="ml-16 space-y-4">
+                <div>
+                    <div class="text-sm text-gray-400 mb-2">Create virtual environment:</div>
+                    <div class="code-block">
+                        <div class="text-green-400"># Navigate to project folder</div>
+                        <div class="text-white">cd voice-guard</div>
+                        <div class="mt-2 text-green-400"># Create virtual environment</div>
+                        <div class="text-white">python -m venv sih_env</div>
+                    </div>
+                </div>
+
+                <div>
+                    <div class="text-sm text-gray-400 mb-2">Activate environment:</div>
+                    <div class="code-block">
+                        <div class="text-green-400"># Windows:</div>
+                        <div class="text-white">sih_env\Scripts\activate</div>
+                        <div class="mt-2 text-green-400"># Mac/Linux:</div>
+                        <div class="text-white">source sih_env/bin/activate</div>
+                    </div>
+                </div>
+
+                <div>
+                    <div class="text-sm text-gray-400 mb-2">Install packages (takes 1-2 minutes):</div>
+                    <div class="code-block">
+                        <div class="text-white">pip install -r requirements.txt</div>
+                    </div>
+                </div>
+
+                <div class="p-4 bg-green-900 bg-opacity-20 border border-green-700 rounded-lg">
+                    <div class="flex items-center space-x-2 text-green-400">
+                        <i class="fa-solid fa-check-circle"></i>
+                        <span class="font-semibold">Success Indicator:</span>
+                    </div>
+                    <div class="text-sm text-gray-300 mt-1">
+                        You'll see "Successfully installed fastapi uvicorn torch transformers..." messages
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Step 2 -->
+        <div class="bg-gray-800 rounded-xl p-6 border border-gray-700 mb-8">
+            <div class="flex items-start space-x-4 mb-4">
+                <div class="step-number">2</div>
+                <div>
+                    <h2 class="text-2xl font-bold">Start the Backend Server</h2>
+                    <p class="text-gray-400">Launch the AI inference engine</p>
+                </div>
+            </div>
+
+            <div class="ml-16 space-y-4">
+                <div>
+                    <div class="text-sm text-gray-400 mb-2">Run the server:</div>
+                    <div class="code-block">
+                        <div class="text-white">python -m uvicorn server:app --reload</div>
+                    </div>
+                </div>
+
+                <div class="p-4 bg-blue-900 bg-opacity-20 border border-blue-700 rounded-lg">
+                    <div class="flex items-center space-x-2 text-blue-400 mb-2">
+                        <i class="fa-solid fa-info-circle"></i>
+                        <span class="font-semibold">What to Expect:</span>
+                    </div>
+                    <div class="text-sm space-y-1 text-gray-300">
+                        <div>1. "Initializing VoiceGuard ML Engine..." (5-10 seconds)</div>
+                        <div>2. "Loading AI model into memory..." (10-30 seconds)</div>
+                        <div>3. "Model loaded successfully!"</div>
+                        <div>4. "Uvicorn running on http://127.0.0.1:8000"</div>
+                    </div>
+                </div>
+
+                <div class="p-4 bg-green-900 bg-opacity-20 border border-green-700 rounded-lg">
+                    <div class="flex items-center space-x-2 text-green-400">
+                        <i class="fa-solid fa-check-circle"></i>
+                        <span class="font-semibold">Server is Ready!</span>
+                    </div>
+                    <div class="text-sm text-gray-300 mt-1">
+                        Keep this terminal window open while using the app
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Step 3 -->
+        <div class="bg-gray-800 rounded-xl p-6 border border-gray-700 mb-8">
+            <div class="flex items-start space-x-4 mb-4">
+                <div class="step-number">3</div>
+                <div>
+                    <h2 class="text-2xl font-bold">Open the Web Application</h2>
+                    <p class="text-gray-400">Launch the user interface</p>
+                </div>
+            </div>
+
+            <div class="ml-16 space-y-4">
+                <div class="p-4 bg-gray-900 rounded-lg border border-gray-700">
+                    <div class="font-semibold mb-2">Option A: Direct Access (Recommended)</div>
+                    <div class="text-sm text-gray-400 mb-2">Double-click this file in your project folder:</div>
+                    <div class="code-block text-yellow-300">
+                        dashboard.html
+                    </div>
+                </div>
+
+                <div class="p-4 bg-gray-900 rounded-lg border border-gray-700">
+                    <div class="font-semibold mb-2">Option B: Via Index Page</div>
+                    <div class="text-sm text-gray-400 mb-2">Open index.html (auto-redirects to dashboard):</div>
+                    <div class="code-block text-yellow-300">
+                        index.html
+                    </div>
+                </div>
+
+                <div class="p-4 bg-gray-900 rounded-lg border border-gray-700">
+                    <div class="font-semibold mb-2">Option C: Right-Click Method</div>
+                    <div class="text-sm text-gray-400 space-y-1">
+                        <div>1. Right-click on <span class="text-yellow-300">dashboard.html</span></div>
+                        <div>2. Select "Open with"</div>
+                        <div>3. Choose Chrome or Edge</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Step 4 -->
+        <div class="bg-gray-800 rounded-xl p-6 border border-gray-700 mb-8">
+            <div class="flex items-start space-x-4 mb-4">
+                <div class="step-number">4</div>
+                <div>
+                    <h2 class="text-2xl font-bold">Start Monitoring</h2>
+                    <p class="text-gray-400">Begin real-time detection</p>
+                </div>
+            </div>
+
+            <div class="ml-16 space-y-4">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="p-4 bg-gray-900 rounded-lg">
+                        <div class="text-lg font-semibold mb-2">1️⃣ Click "Start Call"</div>
+                        <div class="text-sm text-gray-400">Blue button in top-right corner</div>
+                    </div>
+                    <div class="p-4 bg-gray-900 rounded-lg">
+                        <div class="text-lg font-semibold mb-2">2️⃣ Grant Permissions</div>
+                        <div class="text-sm text-gray-400">Allow microphone access when prompted</div>
+                    </div>
+                    <div class="p-4 bg-gray-900 rounded-lg">
+                        <div class="text-lg font-semibold mb-2">3️⃣ Speak into Mic</div>
+                        <div class="text-sm text-gray-400">Say anything to test detection</div>
+                    </div>
+                    <div class="p-4 bg-gray-900 rounded-lg">
+                        <div class="text-lg font-semibold mb-2">4️⃣ Watch Results</div>
+                        <div class="text-sm text-gray-400">Risk score updates in real-time</div>
+                    </div>
+                </div>
+
+                <div class="p-4 bg-gradient-to-r from-green-900 to-emerald-900 rounded-lg border border-green-700">
+                    <div class="flex items-center space-x-2 text-green-400 text-xl mb-2">
+                        <i class="fa-solid fa-party-horn"></i>
+                        <span class="font-bold">You're All Set!</span>
+                    </div>
+                    <div class="text-sm text-green-100">
+                        VoiceGuard is now protecting against voice cloning attacks in real-time!
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Navigation Guide -->
+        <div class="bg-gradient-to-r from-blue-900 to-purple-900 rounded-xl p-6 border border-blue-700 mb-8">
+            <h2 class="text-2xl font-bold mb-4 flex items-center">
+                <i class="fa-solid fa-map text-blue-400 mr-3"></i>
+                Explore the Application
+            </h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <a href="dashboard.html" class="p-4 bg-gray-900 bg-opacity-50 hover:bg-opacity-70 rounded-lg transition">
+                    <div class="flex items-center space-x-3 mb-2">
+                        <i class="fa-solid fa-gauge-high text-blue-400"></i>
+                        <div class="font-bold">Dashboard</div>
+                    </div>
+                    <div class="text-sm text-gray-300">Real-time monitoring interface</div>
+                </a>
+                <a href="analytics.html" class="p-4 bg-gray-900 bg-opacity-50 hover:bg-opacity-70 rounded-lg transition">
+                    <div class="flex items-center space-x-3 mb-2">
+                        <i class="fa-solid fa-chart-line text-green-400"></i>
+                        <div class="font-bold">Analytics</div>
+                    </div>
+                    <div class="text-sm text-gray-300">Performance metrics & charts</div>
+                </a>
+                <a href="history.html" class="p-4 bg-gray-900 bg-opacity-50 hover:bg-opacity-70 rounded-lg transition">
+                    <div class="flex items-center space-x-3 mb-2">
+                        <i class="fa-solid fa-clock-rotate-left text-yellow-400"></i>
+                        <div class="font-bold">Call History</div>
+                    </div>
+                    <div class="text-sm text-gray-300">Complete detection logs</div>
+                </a>
+                <a href="settings.html" class="p-4 bg-gray-900 bg-opacity-50 hover:bg-opacity-70 rounded-lg transition">
+                    <div class="flex items-center space-x-3 mb-2">
+                        <i class="fa-solid fa-gear text-purple-400"></i>
+                        <div class="font-bold">Settings</div>
+                    </div>
+                    <div class="text-sm text-gray-300">Configure thresholds & preferences</div>
+                </a>
+            </div>
+        </div>
+
+        <!-- Troubleshooting -->
+        <div class="bg-gray-800 rounded-xl p-6 border border-gray-700 mb-8">
+            <h2 class="text-2xl font-bold mb-4 flex items-center">
+                <i class="fa-solid fa-wrench text-orange-400 mr-3"></i>
+                Troubleshooting
+            </h2>
+            <div class="space-y-3">
+                <details class="bg-gray-900 rounded-lg">
+                    <summary class="p-4 cursor-pointer hover:bg-gray-700 rounded-lg transition font-semibold">
+                        ❌ "Backend Disconnected" Error
+                    </summary>
+                    <div class="p-4 text-sm text-gray-400 space-y-2">
+                        <div>• Ensure Python server is running</div>
+                        <div>• Check terminal shows "Uvicorn running..."</div>
+                        <div>• Verify no firewall blocking port 8000</div>
+                        <div>• Test connection in Settings page</div>
+                    </div>
+                </details>
+
+                <details class="bg-gray-900 rounded-lg">
+                    <summary class="p-4 cursor-pointer hover:bg-gray-700 rounded-lg transition font-semibold">
+                        🎤 Microphone Not Working
+                    </summary>
+                    <div class="p-4 text-sm text-gray-400 space-y-2">
+                        <div>• Click lock icon in browser address bar</div>
+                        <div>• Ensure microphone permission is granted</div>
+                        <div>• Refresh the page and try again</div>
+                        <div>• Check system microphone is not muted</div>
+                    </div>
+                </details>
+
+                <details class="bg-gray-900 rounded-lg">
+                    <summary class="p-4 cursor-pointer hover:bg-gray-700 rounded-lg transition font-semibold">
+                        🐌 High CPU Usage
+                    </summary>
+                    <div class="p-4 text-sm text-gray-400 space-y-2">
+                        <div>• This is normal - ML model is processing in real-time</div>
+                        <div>• Increase chunk duration in Settings (2.5s → 3.0s)</div>
+                        <div>• Close unnecessary browser tabs</div>
+                        <div>• Ensure adequate RAM available (~2GB)</div>
+                    </div>
+                </details>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="text-center text-gray-500 text-sm">
+            <div class="mb-2">Need more help? Check <a href="about.html" class="text-blue-400 hover:underline">About Page</a> for detailed documentation</div>
+            <div>VoiceGuard v1.0.0 • Team Domino • Smart India Hackathon 2026</div>
+        </div>
+    </div>
+
+</body>
+</html>
