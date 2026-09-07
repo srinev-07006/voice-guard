@@ -1,5 +1,7 @@
 import io
 import json
+import os
+import tempfile
 import librosa
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
@@ -77,18 +79,23 @@ async def websocket_audio_endpoint(websocket: WebSocket):
             # 1. Receive incoming raw audio bytes
             audio_bytes = await websocket.receive_bytes()
             
-            # MVP SIMULATION: In a full build, the frontend sends a JSON with both audio and live transcript.
-            # Here, we mock a transcript that flags a "transfer" to prove the contextual logic works.
+            # MVP SIMULATION: Mocking a transcript flag for presentation logic.
             mock_transcript = "I need to do an urgent transfer right now."
             context_flag = evaluate_context(mock_transcript)
             
-            # 2. Process entirely in volatile memory
-            audio_buffer = io.BytesIO(audio_bytes)
+            # 2. Secure Temporary Processing (DPDP Act Compliant)
+            # Write a secure temp file to allow librosa to decode the WebM container.
+            with tempfile.NamedTemporaryFile(delete=False, suffix=".webm") as temp_audio:
+                temp_audio.write(audio_bytes)
+                temp_path = temp_audio.name
             
             try:
-                # 3. Load and format to 16kHz mono. 
-                # (Note: librosa handles standard WAV headers. We will ensure the React app sends compatible blobs).
-                audio_data, sr = librosa.load(audio_buffer, sr=16000, mono=True)
+                # 3. Load and format to exactly 16kHz mono. 
+                audio_data, sr = librosa.load(temp_path, sr=16000, mono=True)
+                
+                # INSTANTLY delete the raw audio from disk to maintain privacy constraints.
+                os.remove(temp_path)
+                
                 payload = {"raw": audio_data, "sampling_rate": sr}
                 
                 # 4. Fast Path inference (Acoustic Artifacts)
@@ -98,7 +105,7 @@ async def websocket_audio_endpoint(websocket: WebSocket):
                     # 5. Risk Fusion Engine (Acoustic + Context)
                     decision = get_decision_ladder(risk_score, context_flag)
                     
-                    # 6. Dispatch operator-ready payload
+                    # 6. Dispatch operator-ready payload to the dashboard
                     await websocket.send_json({
                         "status": "success",
                         "risk_score": float(risk_score),
@@ -110,6 +117,9 @@ async def websocket_audio_endpoint(websocket: WebSocket):
                     await websocket.send_json({"status": "error", "message": "Detection failed."})
                     
             except Exception as e:
+                # Always clean up the temp file if decoding fails for any reason
+                if os.path.exists(temp_path):
+                    os.remove(temp_path)
                 print(f"⚠️ Audio decoding error: {e}")
                 await websocket.send_json({"status": "error", "message": "Audio format error. Waiting for next chunk."})
 

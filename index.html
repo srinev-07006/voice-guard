@@ -106,7 +106,7 @@
                 const data = JSON.parse(event.data);
                 
                 if (data.status === 'success') {
-                    // Update Score (Convert 0.0-1.0 to Percentage)
+                    // Update Score
                     const percentage = Math.round(data.risk_score * 100);
                     scoreDisplay.innerText = percentage + '%';
 
@@ -144,19 +144,31 @@
                 try {
                     // Request Microphone Access
                     const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                    isRecording = true;
                     
-                    // Initialize MediaRecorder
-                    mediaRecorder = new MediaRecorder(stream, { mimeType: 'audio/webm' });
-                    
-                    // Stream audio chunks to WebSocket every 2.5 seconds
-                    mediaRecorder.ondataavailable = (event) => {
-                        if (event.data.size > 0 && socket.readyState === WebSocket.OPEN) {
-                            socket.send(event.data);
-                        }
+                    // Create a loop to record distinct 2.5s files with headers
+                    const recordLoop = () => {
+                        if (!isRecording) return;
+                        
+                        mediaRecorder = new MediaRecorder(stream, { mimeType: 'audio/webm' });
+                        mediaRecorder.ondataavailable = (event) => {
+                            if (event.data.size > 0 && socket.readyState === WebSocket.OPEN) {
+                                socket.send(event.data);
+                            }
+                        };
+                        
+                        mediaRecorder.start();
+                        
+                        // Stop and restart every 2.5 seconds to force a fresh header
+                        setTimeout(() => {
+                            if (isRecording) {
+                                mediaRecorder.stop();
+                                recordLoop(); 
+                            }
+                        }, 2500);
                     };
 
-                    mediaRecorder.start(2500); // 2.5 second sliding window
-                    isRecording = true;
+                    recordLoop();
                     
                     // Update Button UI
                     recordBtn.innerHTML = '<i class="fa-solid fa-stop mr-2"></i> Stop Call';
@@ -170,9 +182,8 @@
                 }
             } else {
                 // Stop Recording
-                mediaRecorder.stop();
-                mediaRecorder.stream.getTracks().forEach(track => track.stop());
                 isRecording = false;
+                if (mediaRecorder) mediaRecorder.stop();
                 
                 // Reset UI
                 recordBtn.innerHTML = '<i class="fa-solid fa-microphone mr-2"></i> Start Call';
