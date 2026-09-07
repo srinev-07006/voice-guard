@@ -6,7 +6,7 @@ async def test_websocket():
     uri = "ws://127.0.0.1:8000/ws/audio"
     
     # Update this to match your actual test file path
-    test_audio_path = r"D:\Projects\VoiceGuard\audios\real\sample.wav" 
+    test_audio_path = r"D:\Projects\VoiceGuard\audios\fake\sample2.wav" 
     
     try:
         async with websockets.connect(uri) as websocket:
