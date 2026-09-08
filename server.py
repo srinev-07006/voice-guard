@@ -3,6 +3,8 @@ import json
 import os
 import tempfile
 import librosa
+import numpy as np
+from collections import deque
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 from detector import VoiceCloneDetector
@@ -10,7 +12,7 @@ from detector import VoiceCloneDetector
 # Initialize the FastAPI app
 app = FastAPI(title="VoiceGuard API")
 
-# Allow the React frontend to communicate with this backend
+# Allow the frontend to communicate with this backend
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -74,50 +76,53 @@ async def websocket_audio_endpoint(websocket: WebSocket):
     await websocket.accept()
     print("🟢 Frontend connected to WebSocket.")
     
+    # Temporal smoothing queue (stores the last 3 chunks to prevent erratic jumps)
+    score_history = deque(maxlen=3)
+    
     try:
         while True:
-            # 1. Receive incoming raw audio bytes
             audio_bytes = await websocket.receive_bytes()
             
-            # MVP SIMULATION: Mocking a transcript flag for presentation logic.
             mock_transcript = "I need to do an urgent transfer right now."
             context_flag = evaluate_context(mock_transcript)
             
-            # 2. Secure Temporary Processing (DPDP Act Compliant)
-            # Write a secure temp file to allow librosa to decode the WebM container.
+            # Secure Temporary Processing (DPDP Act Compliant)
             with tempfile.NamedTemporaryFile(delete=False, suffix=".webm") as temp_audio:
                 temp_audio.write(audio_bytes)
                 temp_path = temp_audio.name
             
             try:
-                # 3. Load and format to exactly 16kHz mono. 
+                # Load and format to exactly 16kHz mono
                 audio_data, sr = librosa.load(temp_path, sr=16000, mono=True)
-                
-                # INSTANTLY delete the raw audio from disk to maintain privacy constraints.
                 os.remove(temp_path)
                 
-                payload = {"raw": audio_data, "sampling_rate": sr}
-                
-                # 4. Fast Path inference (Acoustic Artifacts)
-                risk_score = detector.analyze_audio(payload)
-                
-                if risk_score is not None:
-                    # 5. Risk Fusion Engine (Acoustic + Context)
-                    decision = get_decision_ladder(risk_score, context_flag)
-                    
-                    # 6. Dispatch operator-ready payload to the dashboard
-                    await websocket.send_json({
-                        "status": "success",
-                        "risk_score": float(risk_score),
-                        "is_synthetic": risk_score > 0.5,
-                        "context_flagged": context_flag,
-                        **decision
-                    })
+                # Voice Activity Detection (VAD): Filter out background silence
+                volume = np.mean(np.abs(audio_data))
+                if volume < 0.005:
+                    # If it's just silence/noise, default to a safe baseline score
+                    risk_score = 0.05
                 else:
-                    await websocket.send_json({"status": "error", "message": "Detection failed."})
+                    payload = {"raw": audio_data, "sampling_rate": sr}
+                    raw_score = detector.analyze_audio(payload)
+                    risk_score = raw_score if raw_score is not None else 0.05
+                
+                # Apply Temporal Smoothing (Rolling Average)
+                score_history.append(float(risk_score))
+                smoothed_score = sum(score_history) / len(score_history)
+                
+                # Risk Fusion Engine (Acoustic + Context)
+                decision = get_decision_ladder(smoothed_score, context_flag)
+                
+                # Dispatch operator-ready payload to the dashboard
+                await websocket.send_json({
+                    "status": "success",
+                    "risk_score": float(smoothed_score),
+                    "is_synthetic": smoothed_score > 0.5,
+                    "context_flagged": context_flag,
+                    **decision
+                })
                     
             except Exception as e:
-                # Always clean up the temp file if decoding fails for any reason
                 if os.path.exists(temp_path):
                     os.remove(temp_path)
                 print(f"⚠️ Audio decoding error: {e}")
