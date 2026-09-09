@@ -4,44 +4,45 @@
 const sb = window.supabaseClient;
 
 // Route Protection: verify active session
-async function checkAuthSession() {
+// Use onAuthStateChange instead of getSession to avoid race conditions
+// where the session is still being loaded from storage.
+function initAuthProtection() {
     if (!sb) {
         // Client failed to load — fail closed rather than exposing the dashboard.
         console.error('Supabase client failed to load. Redirecting to sign in.');
         window.location.href = 'index.html';
         return;
     }
-    const { data: { session }, error } = await sb.auth.getSession();
-    if (error || !session) {
-        // No active session, redirect to index.html immediately
-        window.location.href = 'index.html';
-        return;
-    }
 
-    // Display the signed-in user's email in the sidebar
-    const userEmailEl = document.getElementById('userEmail');
-    if (userEmailEl && session.user) {
-        userEmailEl.innerText = session.user.email;
-    }
+    // Listen for the initial auth state (INITIAL_SESSION event fires once on load)
+    const { data: { subscription } } = sb.auth.onAuthStateChange((event, session) => {
+        if (event === 'INITIAL_SESSION') {
+            if (!session) {
+                // No active session, redirect to index.html
+                window.location.href = 'index.html';
+            } else {
+                // Session exists, display the signed-in user's email
+                const userEmailEl = document.getElementById('userEmail');
+                if (userEmailEl && session.user) {
+                    userEmailEl.innerText = session.user.email;
+                }
+            }
+            // Unsubscribe after initial check
+            subscription.unsubscribe();
+        } else if (event === 'SIGNED_OUT') {
+            window.location.href = 'index.html';
+        }
+    });
 }
 
 // Perform session verification immediately
-checkAuthSession();
+initAuthProtection();
 
 // Sign out handler
 async function handleLogout() {
     if (!sb) return;
     await sb.auth.signOut();
     window.location.href = 'index.html';
-}
-
-// Listen for auth state changes (e.g., if token expires or user logs out)
-if (sb) {
-    sb.auth.onAuthStateChange((event, session) => {
-        if (event === 'SIGNED_OUT' || !session) {
-            window.location.href = 'index.html';
-        }
-    });
 }
 
 // VoiceGuard Dashboard JavaScript

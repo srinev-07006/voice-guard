@@ -166,16 +166,26 @@
         const alertBox = document.getElementById('alert-box');
 
         // Check if user is already logged in
-        async function checkSession() {
+        // Use onAuthStateChange instead of getSession to avoid race conditions
+        // where the session is still being loaded from storage.
+        function initAuthCheck() {
             if (!sb) return;
-            const { data: { session } } = await sb.auth.getSession();
-            if (session) {
-                window.location.href = 'dashboard.html';
-            }
+
+            // Listen for the initial auth state
+            const { data: { subscription } } = sb.auth.onAuthStateChange((event, session) => {
+                if (event === 'INITIAL_SESSION') {
+                    if (session) {
+                        // User is already logged in, redirect to dashboard
+                        window.location.href = 'dashboard.html';
+                    }
+                    // Unsubscribe after initial check
+                    subscription.unsubscribe();
+                }
+            });
         }
 
         // Call it immediately
-        checkSession();
+        initAuthCheck();
 
         // Applies the Sign In / Sign Up UI. Deliberately does NOT touch the alert
         // box, so a message set just before a mode switch survives it.
