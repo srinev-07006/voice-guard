@@ -141,8 +141,12 @@
 
     <!-- Auth Logic -->
     <script>
-        // Supabase client comes from js/supabase-client.js
-        const supabase = window.supabaseClient;
+        // Supabase client comes from js/supabase-client.js.
+        // NOTE: do not name this `supabase` — the CDN bundle already defines a
+        // global with that name, and re-declaring it here throws
+        // "Identifier 'supabase' has already been declared", which aborts this
+        // entire script and silently kills every handler below.
+        const sb = window.supabaseClient;
 
         // State
         let isSignUpMode = false;
@@ -163,8 +167,8 @@
 
         // Check if user is already logged in
         async function checkSession() {
-            if (!supabase) return;
-            const { data: { session } } = await supabase.auth.getSession();
+            if (!sb) return;
+            const { data: { session } } = await sb.auth.getSession();
             if (session) {
                 window.location.href = 'dashboard.html';
             }
@@ -208,7 +212,7 @@
         authForm.addEventListener('submit', async (e) => {
             e.preventDefault();
 
-            if (!supabase) {
+            if (!sb) {
                 showAlert('Auth service unavailable. Check the browser console.', 'error');
                 return;
             }
@@ -229,7 +233,7 @@
             try {
                 if (isSignUpMode) {
                     // Execute Sign Up
-                    const { data, error } = await supabase.auth.signUp({
+                    const { data, error } = await sb.auth.signUp({
                         email: email,
                         password: password,
                     });
@@ -251,7 +255,7 @@
 
                 } else {
                     // Execute Sign In
-                    const { data, error } = await supabase.auth.signInWithPassword({
+                    const { data, error } = await sb.auth.signInWithPassword({
                         email: email,
                         password: password,
                     });

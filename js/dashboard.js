@@ -1,16 +1,17 @@
 // Supabase Route Protection and Auth Integration
-// Client is initialized by js/supabase-client.js (loaded earlier in <head>)
-const supabase = window.supabaseClient;
+// Client is initialized by js/supabase-client.js (loaded earlier in <head>).
+// Do not name this `supabase` to avoid colliding with the CDN global.
+const sb = window.supabaseClient;
 
 // Route Protection: verify active session
 async function checkAuthSession() {
-    if (!supabase) {
+    if (!sb) {
         // Client failed to load — fail closed rather than exposing the dashboard.
         console.error('Supabase client failed to load. Redirecting to sign in.');
         window.location.href = 'index.html';
         return;
     }
-    const { data: { session }, error } = await supabase.auth.getSession();
+    const { data: { session }, error } = await sb.auth.getSession();
     if (error || !session) {
         // No active session, redirect to index.html immediately
         window.location.href = 'index.html';
@@ -29,14 +30,14 @@ checkAuthSession();
 
 // Sign out handler
 async function handleLogout() {
-    if (!supabase) return;
-    await supabase.auth.signOut();
+    if (!sb) return;
+    await sb.auth.signOut();
     window.location.href = 'index.html';
 }
 
 // Listen for auth state changes (e.g., if token expires or user logs out)
-if (supabase) {
-    supabase.auth.onAuthStateChange((event, session) => {
+if (sb) {
+    sb.auth.onAuthStateChange((event, session) => {
         if (event === 'SIGNED_OUT' || !session) {
             window.location.href = 'index.html';
         }
