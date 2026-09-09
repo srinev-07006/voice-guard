@@ -169,6 +169,15 @@
         async function initAuthCheck() {
             if (!sb) return;
 
+            // Check for explicit logout signal from dashboard
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get('logout') === 'true') {
+                // Clear the URL to avoid lingering logout state
+                window.history.replaceState({}, document.title, window.location.pathname);
+                // Clear index.html's storage explicitly to prevent old session from triggering auto-login
+                await sb.auth.signOut();
+            }
+
             // Wait for any url hash to be processed, then get the session securely
             const { data: { session }, error } = await sb.auth.getSession();
             if (session) {

@@ -43,7 +43,7 @@ async function initAuthProtection() {
     // Listen only for explicit sign out, ignoring initial events which might cause race bugs
     sb.auth.onAuthStateChange((event, session) => {
         if (event === 'SIGNED_OUT') {
-            window.location.href = 'index.html';
+            window.location.href = 'index.html?logout=true';
         }
     });
 }
@@ -55,7 +55,7 @@ initAuthProtection();
 async function handleLogout() {
     if (!sb) return;
     await sb.auth.signOut();
-    window.location.href = 'index.html';
+    window.location.href = 'index.html?logout=true';
 }
 
 // VoiceGuard Dashboard JavaScript
