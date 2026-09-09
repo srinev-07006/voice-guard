@@ -19,21 +19,61 @@ class VoiceCloneDetector:
             # Dummy MFCC mean profile for a legitimate "Account Owner"
             "cxo_user_123": np.random.uniform(-10, 10, 20)
         }
+
+        # Warmup flag to track if model has been warmed up
+        self._is_warmed_up = False
+
         print("Models loaded successfully!")
+        # Warm up the model during startup so early detections are fast
+        self._warmup()
+
+    def _warmup(self):
+        """Warmup the model on a small audio sample to avoid delay on first real detection."""
+        if self._is_warmed_up:
+            return
+
+        print("Warming up audio detection model...")
+        try:
+            # Create a small dummy audio signal (0.5 seconds at 16kHz)
+            dummy_audio = np.zeros(8000, dtype=np.float32)
+            dummy_payload = {"raw": dummy_audio, "sampling_rate": 16000}
+
+            # Run a dummy inference to trigger model warmup
+            _ = self.pipe(dummy_payload)
+
+            self._is_warmed_up = True
+            print("Model warmup complete.")
+        except Exception as e:
+            print(f"Model warmup failed: {e}")
+            self._is_warmed_up = True  # Don't retry warmup
 
     def extract_prosody_and_features(self, audio_data, sr):
         """
         Extracts prosody attributes (pitch, rhythm, spectral signatures)
         and computes MFCCs for speaker verification.
         """
+        # Fast path for very short or near-silent audio chunks to avoid heavy DSP calculations
+        if len(audio_data) < 1000 or np.max(np.abs(audio_data)) < 1e-4:
+            return {
+                "pitch_variation": 0.0,
+                "tempo": 0.0,
+                "spectral_centroid_mean": 0.0,
+                "mfcc_vector": np.zeros(20),
+                "anonymized_spectral_log": [0.0] * 10
+            }
+
         # Prosody: Fundamental Frequency (Pitch) Variation
-        pitches, magnitudes = librosa.piptrack(y=audio_data, sr=sr)
+        # Using a smaller n_fft / hop_length or sub-sampling for faster processing on real-time chunks
+        pitches, magnitudes = librosa.piptrack(y=audio_data, sr=sr, hop_length=512)
         pitch_variations = pitch_contour = pitches[pitches > 0]
         pitch_std = np.std(pitch_contour) if len(pitch_contour) > 0 else 0
 
         # Prosody: Speech Rhythm (Tempo)
-        tempo, _ = librosa.beat.beat_track(y=audio_data, sr=sr)
-        tempo_val = float(tempo[0]) if isinstance(tempo, np.ndarray) else float(tempo)
+        try:
+            tempo, _ = librosa.beat.beat_track(y=audio_data, sr=sr)
+            tempo_val = float(tempo[0]) if isinstance(tempo, np.ndarray) else float(tempo)
+        except Exception:
+            tempo_val = 0.0
 
         # Spectral Artifacts (Phase & Spectral Centroid)
         spectral_centroids = librosa.feature.spectral_centroid(y=audio_data, sr=sr)[0]
