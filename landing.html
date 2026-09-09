@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VoiceGuard | AI-Powered Deepfake Detection</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- OGL is ESM-only — importmap lets the module script below resolve it by name -->
+    <script type="importmap">
+      { "imports": { "ogl": "https://unpkg.com/ogl@1.0.11/src/index.js" } }
+    </script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            background: #000000;
+            overflow-x: hidden;
+        }
+
+        .gradient-text {
+            background: linear-gradient(135deg, #3b82f6 0%, #10b981 50%, #3b82f6 100%);
+            background-size: 200% auto;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: gradient-shift 3s ease infinite;
+        }
+
+        @keyframes gradient-shift {
+            0%, 100% { background-position: 0% center; }
+            50%       { background-position: 100% center; }
+        }
+
+        /* Hero section must be position:relative so the absolute orb is contained */
+        .hero-section {
+            position: relative;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0 1.5rem;
+            overflow: hidden;
+        }
+
+        /* Orb fills the hero section as a background layer */
+        #orb-root {
+            position: absolute;
+            inset: 0;                 /* top/right/bottom/left: 0 */
+            z-index: 0;
+            opacity: 0.9;
+            pointer-events: none;     /* clicks pass through to content */
+        }
+
+        /* The WebGL canvas must fill its parent div */
+        #orb-root canvas {
+            width: 100% !important;
+            height: 100% !important;
+            display: block;
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 10;
+            text-align: center;
+            max-width: 56rem;
+            margin: 0 auto;
+            padding-top: 80px; /* clear the fixed nav */
+        }
+
+        .glass-card {
+            background: rgba(17, 24, 39, 0.7);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(55, 65, 81, 0.5);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #3b82f6 0%, #10b981 100%);
+            transition: all 0.3s ease;
+        }
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 40px rgba(59, 130, 246, 0.3);
+        }
+
+        .btn-secondary {
+            background: rgba(55, 65, 81, 0.5);
+            border: 1px solid rgba(75, 85, 99, 0.5);
+            transition: all 0.3s ease;
+        }
+        .btn-secondary:hover {
+            background: rgba(55, 65, 81, 0.8);
+            border-color: rgba(107, 114, 128, 0.8);
+        }
+
+        .feature-card {
+            background: rgba(17, 24, 39, 0.5);
+            backdrop-filter: blur(5px);
+            border: 1px solid rgba(55, 65, 81, 0.3);
+            transition: all 0.3s ease;
+        }
+        .feature-card:hover {
+            border-color: rgba(59, 130, 246, 0.5);
+            transform: translateY(-5px);
+        }
+
+        .mobile-menu { display: none; }
+        .mobile-menu.open { display: flex; }
+
+        @media (max-width: 640px) {
+            .desktop-nav-links { display: none; }
+            .hamburger-btn { display: flex; }
+        }
+        @media (min-width: 641px) {
+            .hamburger-btn { display: none; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ── Fixed Navigation ── -->
+    <nav class="fixed top-0 left-0 right-0 z-50 glass-card">
+        <div class="max-w-7xl mx-auto px-6 py-4">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-3">
+                    <div class="w-10 h-10 bg-gradient-to-br from-blue-500 to-green-500 rounded-lg flex items-center justify-center flex-shrink-0">
+                        <i class="fa-solid fa-shield-halved text-white text-xl"></i>
+                    </div>
+                    <span class="text-xl font-bold gradient-text">VoiceGuard</span>
+                </div>
+
+                <div class="desktop-nav-links flex items-center space-x-6">
+                    <a href="dashboard.html" class="text-gray-300 hover:text-white transition">Dashboard</a>
+                    <a href="about.html"     class="text-gray-300 hover:text-white transition">About</a>
+                    <a href="dashboard.html" class="btn-primary px-6 py-2 rounded-lg font-semibold text-white">Launch App</a>
+                </div>
+
+                <button id="hamburger-btn"
+                        class="hamburger-btn items-center justify-center w-10 h-10 rounded-lg glass-card"
+                        aria-label="Toggle navigation menu">
+                    <i class="fa-solid fa-bars text-white"></i>
+                </button>
+            </div>
+
+            <div id="mobile-menu" class="mobile-menu flex-col gap-3 pt-4 pb-2">
+                <a href="dashboard.html" class="text-gray-300 hover:text-white transition py-2">Dashboard</a>
+                <a href="about.html"     class="text-gray-300 hover:text-white transition py-2">About</a>
+                <a href="dashboard.html" class="btn-primary px-6 py-3 rounded-lg font-semibold text-white text-center">Launch App</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- ── Hero Section ── -->
+    <section class="hero-section">
+
+        <!-- WebGL Orb lives here as a full-bleed background -->
+        <div id="orb-root"></div>
+
+        <div class="hero-content">
+            <div class="inline-flex items-center px-4 py-2 rounded-full glass-card mb-8">
+                <span class="w-2 h-2 bg-green-500 rounded-full mr-2 animate-pulse"></span>
+                <span class="text-sm text-gray-300">AI-Powered Real-Time Deepfake Detection</span>
+            </div>
+
+            <h1 class="text-5xl sm:text-6xl md:text-7xl font-bold mb-6 leading-tight">
+                <span class="gradient-text">Defeat Voice Cloning</span><br>
+                <span class="text-white">Impersonation Attacks</span>
+            </h1>
+
+            <p class="text-lg sm:text-xl text-gray-400 mb-10 max-w-2xl mx-auto">
+                Real-time AI detection that identifies synthetic voices and stops voice cloning attacks.
+                Built by Team Domino for Smart India Hackathon 2026.
+            </p>
+
+            <div class="flex flex-col sm:flex-row items-center justify-center gap-4">
+                <a href="dashboard.html" class="btn-primary px-8 py-4 rounded-xl font-semibold text-lg flex items-center w-full sm:w-auto justify-center text-white">
+                    <i class="fa-solid fa-play mr-2"></i>Start Detection
+                </a>
+                <a href="about.html" class="btn-secondary px-8 py-4 rounded-xl font-semibold text-lg flex items-center w-full sm:w-auto justify-center text-white">
+                    <i class="fa-solid fa-circle-info mr-2"></i>Learn More
+                </a>
+            </div>
+
+            <div class="grid grid-cols-3 gap-4 sm:gap-8 mt-16 max-w-2xl mx-auto">
+                <div class="text-center">
+                    <div class="text-2xl sm:text-3xl font-bold gradient-text">99.2%</div>
+                    <div class="text-xs sm:text-sm text-gray-500 mt-1">Accuracy</div>
+                </div>
+                <div class="text-center">
+                    <div class="text-2xl sm:text-3xl font-bold gradient-text">&lt;500ms</div>
+                    <div class="text-xs sm:text-sm text-gray-500 mt-1">Latency</div>
+                </div>
+                <div class="text-center">
+                    <div class="text-2xl sm:text-3xl font-bold gradient-text">24/7</div>
+                    <div class="text-xs sm:text-sm text-gray-500 mt-1">Real-time</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ── Features Section ── -->
+    <section class="relative py-20 px-6">
+        <div class="max-w-6xl mx-auto">
+            <div class="text-center mb-16">
+                <h2 class="text-3xl sm:text-4xl font-bold mb-4 text-white">How It Works</h2>
+                <p class="text-gray-400 max-w-xl mx-auto">
+                    Advanced acoustic analysis powered by Wav2Vec2 transformer models
+                </p>
+            </div>
+
+            <div class="grid sm:grid-cols-2 md:grid-cols-3 gap-8">
+                <div class="feature-card rounded-2xl p-8">
+                    <div class="w-14 h-14 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center mb-6">
+                        <i class="fa-solid fa-microphone text-2xl text-white"></i>
+                    </div>
+                    <h3 class="text-xl font-semibold mb-3 text-white">Multi-Layer Authenticity Analysis</h3>
+                    <p class="text-gray-400">
+                        Deep learning models perform acoustic, spectral, and prosody/behavioral analysis to detect synthesis artifacts, phase inconsistencies, and microvariations in real-time. Includes cross-session consistency checks against historical genuine samples.
+                    </p>
+                </div>
+
+                <div class="feature-card rounded-2xl p-8">
+                    <div class="w-14 h-14 bg-gradient-to-br from-green-500 to-green-600 rounded-xl flex items-center justify-center mb-6">
+                        <i class="fa-solid fa-brain text-2xl text-white"></i>
+                    </div>
+                    <h3 class="text-xl font-semibold mb-3 text-white">Dynamic Risk Evaluation & Multilingual AI</h3>
+                    <p class="text-gray-400">
+                        Continuous computation of an actionable impersonation risk score with contextual enrichment. AI models are optimized for telephony and VoIP, featuring language-agnostic extraction to support Indian accents and diverse regional dialects.
+                    </p>
+                </div>
+
+                <div class="feature-card rounded-2xl p-8 sm:col-span-2 md:col-span-1">
+                    <div class="w-14 h-14 bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl flex items-center justify-center mb-6">
+                        <i class="fa-solid fa-shield-halved text-2xl text-white"></i>
+                    </div>
+                    <h3 class="text-xl font-semibold mb-3 text-white">Enterprise APIs & Alerting Workflows</h3>
+                    <p class="text-gray-400">
+                        Exposes REST/gRPC APIs and SDKs for banks and enterprise collaboration platforms. Features configurable thresholds, feature-only privacy logging, and multi-channel mechanisms (UI, SMS, in-app) for pre-transaction MFA warnings.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ── CTA Section ── -->
+    <section class="relative py-20 px-6">
+        <div class="max-w-4xl mx-auto">
+            <div class="glass-card rounded-3xl p-8 sm:p-12 text-center">
+                <h2 class="text-2xl sm:text-3xl font-bold mb-4 text-white">Ready to Protect Your Communications?</h2>
+                <p class="text-gray-400 mb-8 max-w-xl mx-auto">
+                    Built for Problem Statement 26104 — AI/ML, Security &amp; Voice Technology.
+                    Privacy-compliant (DPDP Act 2023): audio processed in RAM only, never stored.
+                </p>
+                <a href="dashboard.html" class="btn-primary px-10 py-4 rounded-xl font-semibold text-lg inline-flex items-center text-white">
+                    <i class="fa-solid fa-rocket mr-2"></i>Get Started Now
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- ── Footer ── -->
+    <footer class="relative py-8 px-6 border-t border-gray-800">
+        <div class="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
+            <div class="flex items-center space-x-3">
+                <div class="w-8 h-8 bg-gradient-to-br from-blue-500 to-green-500 rounded-lg flex items-center justify-center">
+                    <i class="fa-solid fa-shield-halved text-white text-sm"></i>
+                </div>
+                <span class="text-gray-400">VoiceGuard · Team Domino · SIH 2026</span>
+            </div>
+            <div class="flex items-center space-x-6 text-sm text-gray-500">
+                <a href="dashboard.html" class="hover:text-gray-300 transition">Dashboard</a>
+                <a href="about.html"     class="hover:text-gray-300 transition">About</a>
+                <a href="settings.html"  class="hover:text-gray-300 transition">Settings</a>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Mobile nav toggle (plain script, no module needed) -->
+    <script>
+        const hamburgerBtn = document.getElementById('hamburger-btn');
+        const mobileMenu   = document.getElementById('mobile-menu');
+        hamburgerBtn.addEventListener('click', () => {
+            mobileMenu.classList.toggle('open');
+            const icon = hamburgerBtn.querySelector('i');
+            icon.classList.toggle('fa-bars');
+            icon.classList.toggle('fa-xmark');
+        });
+    </script>
+
+    <!--
+        WebGL Orb — type="module" is REQUIRED because OGL is ES-module only.
+        The importmap at the top resolves "ogl" to the unpkg ESM bundle.
+    -->
+    <script type="module">
+        import { Renderer, Program, Mesh, Triangle, Vec3 } from 'ogl';
+
+        const container = document.getElementById('orb-root');
+
+        // Vertex shader — covers the full screen quad
+        const vert = /* glsl */`
+            precision highp float;
+            attribute vec2 position;
+            attribute vec2 uv;
+            varying vec2 vUv;
+            void main() {
+                vUv = uv;
+                gl_Position = vec4(position, 0.0, 1.0);
+            }
+        `;
+
+        // Fragment shader — exact copy from Orb.jsx
+        const frag = /* glsl */`
+            precision highp float;
+            uniform float iTime;
+            uniform vec3  iResolution;
+            uniform float hue;
+            uniform float hover;
+            uniform float rot;
+            uniform float hoverIntensity;
+            uniform vec3  backgroundColor;
+            varying vec2  vUv;
+
+            vec3 rgb2yiq(vec3 c) {
+                return vec3(
+                    dot(c, vec3( 0.299,  0.587,  0.114)),
+                    dot(c, vec3( 0.596, -0.274, -0.322)),
+                    dot(c, vec3( 0.211, -0.523,  0.312))
+                );
+            }
+            vec3 yiq2rgb(vec3 c) {
+                return vec3(
+                    c.x + 0.956*c.y + 0.621*c.z,
+                    c.x - 0.272*c.y - 0.647*c.z,
+                    c.x - 1.106*c.y + 1.703*c.z
+                );
+            }
+            vec3 adjustHue(vec3 color, float hueDeg) {
+                float hueRad = hueDeg * 3.14159265 / 180.0;
+                vec3  yiq    = rgb2yiq(color);
+                float cosA   = cos(hueRad);
+                float sinA   = sin(hueRad);
+                yiq = vec3(yiq.x, yiq.y*cosA - yiq.z*sinA, yiq.y*sinA + yiq.z*cosA);
+                return yiq2rgb(yiq);
+            }
+            vec3 hash33(vec3 p3) {
+                p3  = fract(p3 * vec3(0.1031, 0.11369, 0.13787));
+                p3 += dot(p3, p3.yxz + 19.19);
+                return -1.0 + 2.0*fract(vec3(p3.x+p3.y, p3.x+p3.z, p3.y+p3.z)*p3.zyx);
+            }
+            float snoise3(vec3 p) {
+                const float K1 = 0.333333333;
+                const float K2 = 0.166666667;
+                vec3  i  = floor(p + (p.x+p.y+p.z)*K1);
+                vec3  d0 = p - (i - (i.x+i.y+i.z)*K2);
+                vec3  e  = step(vec3(0.0), d0 - d0.yzx);
+                vec3  i1 = e*(1.0-e.zxy);
+                vec3  i2 = 1.0-e.zxy*(1.0-e);
+                vec3  d1 = d0-(i1-K2), d2=d0-(i2-K1), d3=d0-0.5;
+                vec4  h  = max(0.6-vec4(dot(d0,d0),dot(d1,d1),dot(d2,d2),dot(d3,d3)),0.0);
+                vec4  n  = h*h*h*h * vec4(
+                    dot(d0,hash33(i)),      dot(d1,hash33(i+i1)),
+                    dot(d2,hash33(i+i2)),   dot(d3,hash33(i+1.0)));
+                return dot(vec4(31.316), n);
+            }
+            vec4 extractAlpha(vec3 col) {
+                float a = max(max(col.r,col.g),col.b);
+                return vec4(col/(a+1e-5), a);
+            }
+
+            const vec3  baseColor1  = vec3(0.611765, 0.262745, 0.996078);
+            const vec3  baseColor2  = vec3(0.298039, 0.760784, 0.913725);
+            const vec3  baseColor3  = vec3(0.062745, 0.078431, 0.600000);
+            const float innerRadius = 0.6;
+            const float noiseScale  = 0.65;
+
+            float light1(float i,float a,float d){ return i/(1.0+d*a); }
+            float light2(float i,float a,float d){ return i/(1.0+d*d*a); }
+
+            vec4 draw(vec2 uv) {
+                vec3  c1  = adjustHue(baseColor1, hue);
+                vec3  c2  = adjustHue(baseColor2, hue);
+                vec3  c3  = adjustHue(baseColor3, hue);
+                float ang = atan(uv.y, uv.x);
+                float len = length(uv);
+                float inv = len>0.0 ? 1.0/len : 0.0;
+                float bgL = dot(backgroundColor, vec3(0.299,0.587,0.114));
+
+                float n0  = snoise3(vec3(uv*noiseScale, iTime*0.5))*0.5+0.5;
+                float r0  = mix(mix(innerRadius,1.0,0.4), mix(innerRadius,1.0,0.6), n0);
+                float d0  = distance(uv, (r0*inv)*uv);
+                float v0  = light1(1.0,10.0,d0);
+                v0 *= smoothstep(r0*1.05, r0, len);
+                v0 *= mix(smoothstep(r0*0.8, r0*0.95, len), 1.0, bgL*0.7);
+                float cl  = cos(ang+iTime*2.0)*0.5+0.5;
+
+                vec2  pos = vec2(cos(-iTime), sin(-iTime))*r0;
+                float d   = distance(uv, pos);
+                float v1  = light2(1.5,5.0,d)*light1(1.0,50.0,d0);
+
+                float v2  = smoothstep(1.0, mix(innerRadius,1.0,n0*0.5), len);
+                float v3  = smoothstep(innerRadius, mix(innerRadius,1.0,0.5), len);
+
+                vec3  cb  = mix(c1,c2,cl);
+                float fa  = mix(1.0,0.1,bgL);
+                vec3  dk  = clamp((mix(c3,cb,v0)+v1)*v2*v3, 0.0,1.0);
+                vec3  lk  = clamp(mix(backgroundColor,(cb+v1)*mix(1.0,v2*v3,fa),v0), 0.0,1.0);
+                return extractAlpha(mix(dk,lk,bgL));
+            }
+
+            vec4 mainImage(vec2 fragCoord) {
+                vec2  center = iResolution.xy*0.5;
+                float size   = min(iResolution.x,iResolution.y);
+                vec2  uv     = (fragCoord-center)/size*2.0;
+                float s=sin(rot), c=cos(rot);
+                uv = vec2(c*uv.x-s*uv.y, s*uv.x+c*uv.y);
+                uv.x += hover*hoverIntensity*0.1*sin(uv.y*10.0+iTime);
+                uv.y += hover*hoverIntensity*0.1*sin(uv.x*10.0+iTime);
+                return draw(uv);
+            }
+
+            void main() {
+                vec4 col = mainImage(vUv * iResolution.xy);
+                gl_FragColor = vec4(col.rgb*col.a, col.a);
+            }
+        `;
+
+        // Boot renderer
+        const renderer = new Renderer({ alpha: true, premultipliedAlpha: false });
+        const gl       = renderer.gl;
+        gl.clearColor(0, 0, 0, 0);
+        container.appendChild(gl.canvas);
+
+        const geometry = new Triangle(gl);
+        const program  = new Program(gl, {
+            vertex:   vert,
+            fragment: frag,
+            uniforms: {
+                iTime:           { value: 0 },
+                iResolution:     { value: new Vec3(1, 1, 1) },
+                hue:             { value: 0 },          // hue={0}
+                hover:           { value: 0 },
+                rot:             { value: 0 },
+                hoverIntensity:  { value: 2 },          // hoverIntensity={2}
+                backgroundColor: { value: new Vec3(0, 0, 0) }  // backgroundColor="#000000"
+            }
+        });
+        const mesh = new Mesh(gl, { geometry, program });
+
+        function resize() {
+            const dpr = window.devicePixelRatio || 1;
+            const w   = container.clientWidth;
+            const h   = container.clientHeight;
+            renderer.setSize(w * dpr, h * dpr);
+            gl.canvas.style.width  = w + 'px';
+            gl.canvas.style.height = h + 'px';
+            program.uniforms.iResolution.value.set(gl.canvas.width, gl.canvas.height, gl.canvas.width / gl.canvas.height);
+        }
+        window.addEventListener('resize', resize);
+        resize();
+
+        // Hover detection
+        let targetHover = 0, currentRot = 0, lastT = 0;
+
+        container.addEventListener('mousemove', e => {
+            const r    = container.getBoundingClientRect();
+            const uvX  = ((e.clientX - r.left  - r.width  * 0.5) / Math.min(r.width, r.height)) * 2;
+            const uvY  = ((e.clientY - r.top   - r.height * 0.5) / Math.min(r.width, r.height)) * 2;
+            targetHover = (uvX*uvX + uvY*uvY) < 0.64 ? 1 : 0;
+        });
+        container.addEventListener('mouseleave', () => { targetHover = 0; });
+
+        // Render loop
+        (function loop(t) {
+            requestAnimationFrame(loop);
+            const dt = Math.min((t - lastT) * 0.001, 0.05);
+            lastT = t;
+            program.uniforms.iTime.value   = t * 0.001;
+            program.uniforms.hover.value  += (targetHover - program.uniforms.hover.value) * 0.1;
+            if (targetHover > 0.5) currentRot += dt * 0.3;
+            program.uniforms.rot.value     = currentRot;
+            renderer.render({ scene: mesh });
+        })(0);
+    </script>
+
+</body>
+</html>
