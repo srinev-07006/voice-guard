@@ -1,3 +1,49 @@
+// Supabase Route Protection and Auth Integration
+// TODO: Replace with your actual Supabase URL and Anon Key
+const SUPABASE_URL = 'YOUR_SUPABASE_URL';
+const SUPABASE_ANON_KEY = 'YOUR_ANON_KEY';
+
+const supabase = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
+
+// Route Protection: verify active session
+async function checkAuthSession() {
+    if (!supabase) {
+        console.error('Supabase client failed to load.');
+        return;
+    }
+    const { data: { session }, error } = await supabase.auth.getSession();
+    if (error || !session) {
+        // No active session, redirect to index.html immediately
+        window.location.href = 'index.html';
+        return;
+    }
+
+    // Display the signed-in user's email in the sidebar
+    const userEmailEl = document.getElementById('userEmail');
+    if (userEmailEl && session.user) {
+        userEmailEl.innerText = session.user.email;
+    }
+}
+
+// Perform session verification immediately
+checkAuthSession();
+
+// Sign out handler
+async function handleLogout() {
+    if (!supabase) return;
+    await supabase.auth.signOut();
+    window.location.href = 'index.html';
+}
+
+// Listen for auth state changes (e.g., if token expires or user logs out)
+if (supabase) {
+    supabase.auth.onAuthStateChange((event, session) => {
+        if (event === 'SIGNED_OUT' || !session) {
+            window.location.href = 'index.html';
+        }
+    });
+}
+
 // VoiceGuard Dashboard JavaScript
 let mediaRecorder;
 let socket;
@@ -334,6 +380,12 @@ recordBtn.addEventListener('click', async () => {
 // Initialize on page load
 window.addEventListener('DOMContentLoaded', () => {
     connectWebSocket();
+
+    // Wire up the sign out button
+    const logoutBtn = document.getElementById('logoutBtn');
+    if (logoutBtn) {
+        logoutBtn.addEventListener('click', handleLogout);
+    }
 
     // Load previous log from localStorage
     const savedLog = localStorage.getItem('voiceguard_log');
