@@ -13,6 +13,8 @@
 
     <!-- Supabase JS v2 -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <!-- Shared client (must load after the CDN above) -->
+    <script src="js/supabase-client.js"></script>
 
     <style>
         body {
@@ -139,12 +141,8 @@
 
     <!-- Auth Logic -->
     <script>
-        // Supabase Initialization
-        // TODO: Replace with your actual Supabase URL and Anon Key
-        const SUPABASE_URL = 'https://hrtvynadaqgrflrogybr.supabase.co';
-        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhydHZ5bmFkYXFncmZscm9neWJyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg5NDg5MTIsImV4cCI6MjEwNDUyNDkxMn0.p3D2aKV9i5BTbQNVpPiMyp4X04JypxdWdvrwElk66G0';
-
-        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        // Supabase client comes from js/supabase-client.js
+        const supabase = window.supabaseClient;
 
         // State
         let isSignUpMode = false;
@@ -165,6 +163,7 @@
 
         // Check if user is already logged in
         async function checkSession() {
+            if (!supabase) return;
             const { data: { session } } = await supabase.auth.getSession();
             if (session) {
                 window.location.href = 'dashboard.html';
@@ -174,16 +173,13 @@
         // Call it immediately
         checkSession();
 
-        // UI Toggle Logic
-        toggleModeBtn.addEventListener('click', () => {
-            isSignUpMode = !isSignUpMode;
-
-            // Reset fields and alerts
+        // Applies the Sign In / Sign Up UI. Deliberately does NOT touch the alert
+        // box, so a message set just before a mode switch survives it.
+        function setMode(signUp) {
+            isSignUpMode = signUp;
             authForm.reset();
-            hideAlert();
 
-            if (isSignUpMode) {
-                // Switch to Sign Up UI
+            if (signUp) {
                 subtitleText.textContent = 'Create your account to get started';
                 btnText.textContent = 'Sign Up';
                 togglePrompt.textContent = 'Already have an account?';
@@ -191,19 +187,31 @@
                 signupExtraFields.classList.remove('hidden-mode');
                 passwordConfirmInput.setAttribute('required', 'true');
             } else {
-                // Switch to Sign In UI
                 subtitleText.textContent = 'Sign in to access your dashboard';
                 btnText.textContent = 'Sign In';
                 togglePrompt.textContent = "Don't have an account?";
                 toggleModeBtn.textContent = 'Sign Up';
-                signupExtraFields.classList.add('hidden-mode');
+                // Drop required BEFORE hiding — a hidden required field blocks
+                // submit with "not focusable" and shows the user nothing.
                 passwordConfirmInput.removeAttribute('required');
+                signupExtraFields.classList.add('hidden-mode');
             }
+        }
+
+        // Manual toggle also clears any stale message
+        toggleModeBtn.addEventListener('click', () => {
+            setMode(!isSignUpMode);
+            hideAlert();
         });
 
         // Form Submit handler
         authForm.addEventListener('submit', async (e) => {
             e.preventDefault();
+
+            if (!supabase) {
+                showAlert('Auth service unavailable. Check the browser console.', 'error');
+                return;
+            }
 
             const email = emailInput.value.trim();
             const password = passwordInput.value;
@@ -229,15 +237,16 @@
                     if (error) throw error;
 
                     if (data.user && data.user.identities && data.user.identities.length === 0) {
-                         showAlert('Email already taken. Please sign in.', 'error');
+                         showAlert('That email is already registered. Please sign in.', 'error');
                     } else if (data.session) {
-                         // Auto logged in
+                         // Email confirmation is off — signed in straight away
                          window.location.href = 'dashboard.html';
                     } else {
-                         // Requires email verification based on Supabase settings
-                         showAlert('Signup successful! Please check your email to verify.', 'success');
-                         // Switch back to signin mode
-                         toggleModeBtn.click();
+                         // Email confirmation is on. Switch back to Sign In FIRST,
+                         // then show the message — setMode() leaves the alert alone,
+                         // so it stays on screen.
+                         setMode(false);
+                         showAlert('Account created. Check your email to confirm, then sign in.', 'success');
                     }
 
                 } else {
@@ -251,6 +260,10 @@
 
                     if (data.session) {
                         window.location.href = 'dashboard.html';
+                    } else {
+                        // No error but no session — don't leave the user staring
+                        // at a form that appears to have done nothing.
+                        showAlert('Sign in did not return a session. Confirm your email, then try again.', 'error');
                     }
                 }
             } catch (error) {

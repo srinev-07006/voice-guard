@@ -1,14 +1,13 @@
 // Supabase Route Protection and Auth Integration
-// TODO: Replace with your actual Supabase URL and Anon Key
-const SUPABASE_URL = 'YOUR_SUPABASE_URL';
-const SUPABASE_ANON_KEY = 'YOUR_ANON_KEY';
-
-const supabase = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
+// Client is initialized by js/supabase-client.js (loaded earlier in <head>)
+const supabase = window.supabaseClient;
 
 // Route Protection: verify active session
 async function checkAuthSession() {
     if (!supabase) {
-        console.error('Supabase client failed to load.');
+        // Client failed to load — fail closed rather than exposing the dashboard.
+        console.error('Supabase client failed to load. Redirecting to sign in.');
+        window.location.href = 'index.html';
         return;
     }
     const { data: { session }, error } = await supabase.auth.getSession();
