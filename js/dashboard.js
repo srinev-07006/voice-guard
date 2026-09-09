@@ -4,32 +4,45 @@
 const sb = window.supabaseClient;
 
 // Route Protection: verify active session
-// Use onAuthStateChange instead of getSession to avoid race conditions
-// where the session is still being loaded from storage.
-function initAuthProtection() {
+async function initAuthProtection() {
     if (!sb) {
-        // Client failed to load — fail closed rather than exposing the dashboard.
         console.error('Supabase client failed to load. Redirecting to sign in.');
         window.location.href = 'index.html';
         return;
     }
 
-    // Listen for the initial auth state (INITIAL_SESSION event fires once on load)
-    const { data: { subscription } } = sb.auth.onAuthStateChange((event, session) => {
-        if (event === 'INITIAL_SESSION') {
-            if (!session) {
-                // No active session, redirect to index.html
-                window.location.href = 'index.html';
-            } else {
-                // Session exists, display the signed-in user's email
-                const userEmailEl = document.getElementById('userEmail');
-                if (userEmailEl && session.user) {
-                    userEmailEl.innerText = session.user.email;
-                }
-            }
-            // Unsubscribe after initial check
-            subscription.unsubscribe();
-        } else if (event === 'SIGNED_OUT') {
+    // Workaround for file:/// isolation and race conditions: allow token explicitly passed via URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const urlAccessToken = urlParams.get('t');
+    const urlRefreshToken = urlParams.get('r');
+
+    if (urlAccessToken && urlRefreshToken) {
+        // Clear the URL to avoid leaking the token on screen or in history
+        window.history.replaceState({}, document.title, window.location.pathname);
+        // Force the session using the tokens
+        await sb.auth.setSession({
+            access_token: urlAccessToken,
+            refresh_token: urlRefreshToken
+        });
+    }
+
+    // Verify session
+    const { data: { session }, error } = await sb.auth.getSession();
+
+    if (error || !session) {
+        window.location.href = 'index.html';
+        return;
+    }
+
+    // Session exists, display email
+    const userEmailEl = document.getElementById('userEmail');
+    if (userEmailEl && session.user) {
+        userEmailEl.innerText = session.user.email;
+    }
+
+    // Listen only for explicit sign out, ignoring initial events which might cause race bugs
+    sb.auth.onAuthStateChange((event, session) => {
+        if (event === 'SIGNED_OUT') {
             window.location.href = 'index.html';
         }
     });

@@ -166,22 +166,31 @@
         const alertBox = document.getElementById('alert-box');
 
         // Check if user is already logged in
-        // Use onAuthStateChange instead of getSession to avoid race conditions
-        // where the session is still being loaded from storage.
-        function initAuthCheck() {
+        async function initAuthCheck() {
             if (!sb) return;
 
-            // Listen for the initial auth state
-            const { data: { subscription } } = sb.auth.onAuthStateChange((event, session) => {
-                if (event === 'INITIAL_SESSION') {
-                    if (session) {
-                        // User is already logged in, redirect to dashboard
-                        window.location.href = 'dashboard.html';
-                    }
-                    // Unsubscribe after initial check
-                    subscription.unsubscribe();
+            // Wait for any url hash to be processed, then get the session securely
+            const { data: { session }, error } = await sb.auth.getSession();
+            if (session) {
+                redirectWithToken(session);
+            }
+
+            // Also listen for auth state changes just in case it resolves later
+            sb.auth.onAuthStateChange((event, session) => {
+                if (event === 'SIGNED_IN' && session) {
+                    redirectWithToken(session);
                 }
             });
+        }
+
+        // Helper to safely navigate to dashboard with guaranteed session
+        function redirectWithToken(session) {
+            if (session && session.access_token) {
+                // Pass tokens via URL string for environments where localStorage is isolated (e.g. file:///)
+                window.location.href = `dashboard.html?t=${encodeURIComponent(session.access_token)}&r=${encodeURIComponent(session.refresh_token)}`;
+            } else {
+                window.location.href = 'dashboard.html';
+            }
         }
 
         // Call it immediately
@@ -254,7 +263,7 @@
                          showAlert('That email is already registered. Please sign in.', 'error');
                     } else if (data.session) {
                          // Email confirmation is off — signed in straight away
-                         window.location.href = 'dashboard.html';
+                         redirectWithToken(data.session);
                     } else {
                          // Email confirmation is on. Switch back to Sign In FIRST,
                          // then show the message — setMode() leaves the alert alone,
@@ -273,7 +282,7 @@
                     if (error) throw error;
 
                     if (data.session) {
-                        window.location.href = 'dashboard.html';
+                        redirectWithToken(data.session);
                     } else {
                         // No error but no session — don't leave the user staring
                         // at a form that appears to have done nothing.
