@@ -4,7 +4,12 @@ import os
 import tempfile
 import librosa
 import numpy as np
+<<<<<<< HEAD
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect, HTTPException, BackgroundTasks
+=======
+from collections import deque
+from fastapi import FastAPI, WebSocket, WebSocketDisconnect
+>>>>>>> 5c284cf31854a43d54dd247a3d4bb8cd34010223
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from detector import VoiceCloneDetector
@@ -21,7 +26,7 @@ except ImportError:
 # Initialize the FastAPI app
 app = FastAPI(title="VoiceGuard API", version="1.0.0")
 
-# Allow the React frontend to communicate with this backend
+# Allow the frontend to communicate with this backend
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -154,6 +159,7 @@ def read_root():
 @app.websocket("/ws/audio")
 async def websocket_audio_endpoint(websocket: WebSocket):
     await websocket.accept()
+<<<<<<< HEAD
     print("🟢 Frontend connected to WebSocket API.")
 
     # Metadata can be established upon connection payload
@@ -161,10 +167,17 @@ async def websocket_audio_endpoint(websocket: WebSocket):
     # Pretend a bank customer is on the line
     speaker_id = "cxo_user_123"
 
+=======
+    print("🟢 Frontend connected to WebSocket.")
+    
+    # Temporal smoothing queue (stores the last 3 chunks to prevent erratic jumps)
+    score_history = deque(maxlen=3)
+    
+>>>>>>> 5c284cf31854a43d54dd247a3d4bb8cd34010223
     try:
         while True:
-            # 1. Receive incoming raw audio bytes
             audio_bytes = await websocket.receive_bytes()
+<<<<<<< HEAD
 
             audio_data = None
             sr = 16000
@@ -224,6 +237,51 @@ async def websocket_audio_endpoint(websocket: WebSocket):
                     await websocket.send_json({"status": "error", "message": "Detection failed."})
 
             except Exception as e:
+=======
+            
+            mock_transcript = "I need to do an urgent transfer right now."
+            context_flag = evaluate_context(mock_transcript)
+            
+            # Secure Temporary Processing (DPDP Act Compliant)
+            with tempfile.NamedTemporaryFile(delete=False, suffix=".webm") as temp_audio:
+                temp_audio.write(audio_bytes)
+                temp_path = temp_audio.name
+            
+            try:
+                # Load and format to exactly 16kHz mono
+                audio_data, sr = librosa.load(temp_path, sr=16000, mono=True)
+                os.remove(temp_path)
+                
+                # Voice Activity Detection (VAD): Filter out background silence
+                volume = np.mean(np.abs(audio_data))
+                if volume < 0.005:
+                    # If it's just silence/noise, default to a safe baseline score
+                    risk_score = 0.05
+                else:
+                    payload = {"raw": audio_data, "sampling_rate": sr}
+                    raw_score = detector.analyze_audio(payload)
+                    risk_score = raw_score if raw_score is not None else 0.05
+                
+                # Apply Temporal Smoothing (Rolling Average)
+                score_history.append(float(risk_score))
+                smoothed_score = sum(score_history) / len(score_history)
+                
+                # Risk Fusion Engine (Acoustic + Context)
+                decision = get_decision_ladder(smoothed_score, context_flag)
+                
+                # Dispatch operator-ready payload to the dashboard
+                await websocket.send_json({
+                    "status": "success",
+                    "risk_score": float(smoothed_score),
+                    "is_synthetic": smoothed_score > 0.5,
+                    "context_flagged": context_flag,
+                    **decision
+                })
+                    
+            except Exception as e:
+                if os.path.exists(temp_path):
+                    os.remove(temp_path)
+>>>>>>> 5c284cf31854a43d54dd247a3d4bb8cd34010223
                 print(f"⚠️ Audio decoding error: {e}")
                 await websocket.send_json({"status": "error", "message": "Audio format error. Waiting for next chunk."})
 
