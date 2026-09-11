@@ -162,8 +162,9 @@ async def websocket_audio_endpoint(websocket: WebSocket):
     # Pretend a bank customer is on the line
     speaker_id = "cxo_user_123"
 
-    # Temporal smoothing queue (stores the last 3 chunks to prevent erratic jumps)
-    score_history = deque(maxlen=3)
+    # Temporal smoothing queue — confidence-weighted exponential moving average
+    # Stores (score, confidence) tuples for the last 5 chunks
+    score_history = deque(maxlen=5)
 
     try:
         while True:
@@ -207,10 +208,15 @@ async def websocket_audio_endpoint(websocket: WebSocket):
                 if analysis_report is not None:
                     # 4. Risk Fusion Engine
                     risk_score = analysis_report["final_risk_score"]
+                    confidence = analysis_report.get("confidence", 1.0)
 
-                    # Apply Temporal Smoothing (Rolling Average)
-                    score_history.append(float(risk_score))
-                    smoothed_score = sum(score_history) / len(score_history)
+                    # Apply Confidence-Weighted Temporal Smoothing
+                    score_history.append((float(risk_score), float(confidence)))
+                    total_weight = sum(c for _, c in score_history)
+                    if total_weight > 0:
+                        smoothed_score = sum(s * c for s, c in score_history) / total_weight
+                    else:
+                        smoothed_score = risk_score
 
                     decision = get_decision_ladder(smoothed_score, context_flag)
 
@@ -218,14 +224,19 @@ async def websocket_audio_endpoint(websocket: WebSocket):
                     if decision["risk_level"] == "HIGH":
                         workflow_mgr.dispatch_alert(decision, analysis_report["compliance_log"])
 
-                    # 6. Dispatch operator-ready payload to the dashboard
+                    # 6. Dispatch enriched payload to the dashboard
                     await websocket.send_json({
                         "status": "success",
                         "risk_score": float(smoothed_score),
-                        "is_synthetic": smoothed_score > 0.5,
-                        "context_flagged": context_flag,
+                        "is_synthetic": bool(smoothed_score > 0.5),
+                        "context_flagged": bool(context_flag),
                         "acoustic_model_score": float(analysis_report["acoustic_model_score"]),
+                        "spectral_anomaly_score": float(analysis_report.get("spectral_anomaly_score", 0)),
+                        "prosody_score": float(analysis_report.get("prosody_score", 0)),
                         "speaker_mismatch": float(analysis_report["speaker_mismatch"]),
+                        "speaker_distance": float(analysis_report.get("speaker_distance", 0)),
+                        "confidence": float(confidence),
+                        "audio_quality": analysis_report.get("audio_quality", {}),
                         **decision
                     })
                 else:

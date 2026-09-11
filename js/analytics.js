@@ -31,7 +31,7 @@ function updateAnalytics() {
     const lowRisk = detectionLog.filter(log => log.risk_level === 'LOW').length;
 
     const detectionRate = ((highRisk / total) * 100).toFixed(1);
-    const avgScore = detectionLog.reduce((sum, log) => sum + log.risk_score, 0) / total;
+    const avgScore = detectionLog.reduce((sum, log) => sum + (Number(log.risk_score) || 0), 0) / total;
 
     // Update summary cards
     document.getElementById('totalProcessed').innerText = total;

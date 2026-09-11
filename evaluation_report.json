@@ -1,0 +1,72 @@
+{
+  "threshold": 0.5,
+  "accuracy": 0.25,
+  "precision": 0.3333333333333333,
+  "recall": 0.5,
+  "f1": 0.4,
+  "confusion_matrix": {
+    "tp": 1,
+    "tn": 0,
+    "fp": 2,
+    "fn": 1
+  },
+  "avg_latency_ms": 2540.0991439819336,
+  "samples": [
+    {
+      "file": "real/sample.wav",
+      "ground_truth": 0,
+      "predicted": 1,
+      "risk_score": 0.9066,
+      "acoustic": 0.976993203163147,
+      "spectral": 0.2,
+      "prosody": 0.08,
+      "speaker_dist": 1.0207707278559066,
+      "confidence": 1.0,
+      "snr_db": 26.378278732299805,
+      "correct": false,
+      "latency_ms": 7742.667198181152
+    },
+    {
+      "file": "real/sample2.wav",
+      "ground_truth": 0,
+      "predicted": 1,
+      "risk_score": 0.8772,
+      "acoustic": 0.9723177552223206,
+      "spectral": 0.0,
+      "prosody": 0.08,
+      "speaker_dist": 1.0556819476633525,
+      "confidence": 1.0,
+      "snr_db": 28.146631240844727,
+      "correct": false,
+      "latency_ms": 397.2809314727783
+    },
+    {
+      "file": "fake/sample.wav",
+      "ground_truth": 1,
+      "predicted": 1,
+      "risk_score": 0.7644,
+      "acoustic": 0.7462578415870667,
+      "spectral": 0.0,
+      "prosody": 0.2,
+      "speaker_dist": 0.975954594725829,
+      "confidence": 1.0,
+      "snr_db": 48.407691955566406,
+      "correct": true,
+      "latency_ms": 1134.483814239502
+    },
+    {
+      "file": "fake/sample2.wav",
+      "ground_truth": 1,
+      "predicted": 0,
+      "risk_score": 0.2646,
+      "acoustic": 0.19645754992961884,
+      "spectral": 0.0,
+      "prosody": 0.2,
+      "speaker_dist": 1.1203886506794132,
+      "confidence": 1.0,
+      "snr_db": 60.611568450927734,
+      "correct": false,
+      "latency_ms": 885.9646320343018
+    }
+  ]
+}

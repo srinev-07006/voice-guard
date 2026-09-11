@@ -76,19 +76,22 @@ function applyFilters() {
     const contextFilter = document.getElementById('filterContext').value;
 
     filteredLog = detectionLog.filter(log => {
+        // Safe string reading in case old/corrupted data exists in local storage
+        const safeString = (val) => (val ? String(val).toLowerCase() : '');
+
         // Search filter
         const matchesSearch = !searchTerm ||
-            log.timestamp.toLowerCase().includes(searchTerm) ||
-            log.action.toLowerCase().includes(searchTerm) ||
-            log.reason_code.toLowerCase().includes(searchTerm) ||
-            log.recommendation.toLowerCase().includes(searchTerm);
+            safeString(log.timestamp).includes(searchTerm) ||
+            safeString(log.action).includes(searchTerm) ||
+            safeString(log.reason_code).includes(searchTerm) ||
+            safeString(log.recommendation).includes(searchTerm);
 
         // Risk filter
         const matchesRisk = riskFilter === 'all' || log.risk_level === riskFilter;
 
         // Context filter
-        const matchesContext = contextFilter === 'all' ||
-            log.context_flagged.toString() === contextFilter;
+        const ctxFlag = log.context_flagged !== undefined ? log.context_flagged.toString() : 'false';
+        const matchesContext = contextFilter === 'all' || ctxFlag === contextFilter;
 
         return matchesSearch && matchesRisk && matchesContext;
     });

@@ -14,3 +14,7 @@ faster-whisper
 librosa
 soundfile
 numpy
+scipy
+
+# Speaker Verification (ECAPA-TDNN embeddings)
+speechbrain

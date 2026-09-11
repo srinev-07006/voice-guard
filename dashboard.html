@@ -173,22 +173,43 @@
                                 </div>
                             </div>
 
-                            <!-- Waveform Visualization -->
-                            <div class="flex-1">
-                                <div class="text-sm text-gray-400 mb-2">Audio Input Signal</div>
-                                <div class="waveform justify-center" id="waveform">
-                                    <div class="waveform-bar" style="animation-delay: 0s;"></div>
-                                    <div class="waveform-bar" style="animation-delay: 0.1s;"></div>
-                                    <div class="waveform-bar" style="animation-delay: 0.2s;"></div>
-                                    <div class="waveform-bar" style="animation-delay: 0.3s;"></div>
-                                    <div class="waveform-bar" style="animation-delay: 0.4s;"></div>
-                                    <div class="waveform-bar" style="animation-delay: 0.5s;"></div>
-                                    <div class="waveform-bar" style="animation-delay: 0.4s;"></div>
-                                    <div class="waveform-bar" style="animation-delay: 0.3s;"></div>
-                                    <div class="waveform-bar" style="animation-delay: 0.2s;"></div>
-                                    <div class="waveform-bar" style="animation-delay: 0.1s;"></div>
+                            <!-- Detailed Metric Breakdown -->
+                            <div class="flex-1 space-y-4">
+                                <div class="grid grid-cols-2 gap-4">
+                                    <div class="bg-gray-900 rounded p-3 pt-2">
+                                        <div class="text-[10px] text-gray-500 uppercase tracking-wider mb-1 flex justify-between">
+                                            <span>Acoustic Ensemble</span>
+                                            <i class="fa-solid fa-layer-group text-blue-500"></i>
+                                        </div>
+                                        <div class="text-lg font-mono text-gray-300" id="acousticScoreDisp">--</div>
+                                    </div>
+                                    <div class="bg-gray-900 rounded p-3 pt-2">
+                                        <div class="text-[10px] text-gray-500 uppercase tracking-wider mb-1 flex justify-between">
+                                            <span>Spectral Artifacts</span>
+                                            <i class="fa-solid fa-wave-square text-purple-500"></i>
+                                        </div>
+                                        <div class="text-lg font-mono text-gray-300" id="spectralScoreDisp">--</div>
+                                    </div>
+                                    <div class="bg-gray-900 rounded p-3 pt-2">
+                                        <div class="text-[10px] text-gray-500 uppercase tracking-wider mb-1 flex justify-between">
+                                            <span>Prosody / Rhythm</span>
+                                            <i class="fa-solid fa-music text-pink-500"></i>
+                                        </div>
+                                        <div class="text-lg font-mono text-gray-300" id="prosodyScoreDisp">--</div>
+                                    </div>
+                                    <div class="bg-gray-900 rounded p-3 pt-2">
+                                        <div class="text-[10px] text-gray-500 uppercase tracking-wider mb-1 flex justify-between">
+                                            <span>Voice Authenticity</span>
+                                            <i class="fa-solid fa-fingerprint text-green-500"></i>
+                                        </div>
+                                        <div class="text-lg font-mono text-gray-300" id="speakerMatchDisp">--</div>
+                                    </div>
                                 </div>
-                                <div class="text-xs text-gray-500 mt-2" id="audioInfo">16 kHz • Mono • WebSocket Stream</div>
+
+                                <div class="flex justify-between items-center text-xs text-gray-500 pt-2 border-t border-gray-700">
+                                    <span id="audioInfo">16 kHz • Mono • WebSocket Stream</span>
+                                    <span id="qualityInfo" class="flex items-center gap-1"></span>
+                                </div>
                             </div>
                         </div>
                     </div>

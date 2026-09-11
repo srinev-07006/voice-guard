@@ -155,6 +155,31 @@ function processDetectionResult(data) {
     const offset = circumference - (percentage / 100) * circumference;
     progressCircle.style.strokeDashoffset = offset;
 
+    // Update Enriched Detection Sub-layers
+    document.getElementById('acousticScoreDisp').innerText = (data.acoustic_model_score * 100).toFixed(1) + '%';
+    document.getElementById('acousticScoreDisp').className = `text-lg font-mono ${data.acoustic_model_score > 0.6 ? 'text-red-400' : 'text-gray-300'}`;
+
+    document.getElementById('spectralScoreDisp').innerText = (data.spectral_anomaly_score * 100).toFixed(1) + '%';
+    document.getElementById('spectralScoreDisp').className = `text-lg font-mono ${data.spectral_anomaly_score > 0.4 ? 'text-purple-400' : 'text-gray-300'}`;
+
+    document.getElementById('prosodyScoreDisp').innerText = (data.prosody_score * 100).toFixed(1) + '%';
+    document.getElementById('prosodyScoreDisp').className = `text-lg font-mono ${data.prosody_score > 0.4 ? 'text-pink-400' : 'text-gray-300'}`;
+
+    // Speaker mismatch boolean + distance metric
+    if (data.speaker_mismatch) {
+        document.getElementById('speakerMatchDisp').innerHTML = `<span class="text-red-400">FAILED (${data.speaker_distance.toFixed(2)})</span>`;
+    } else {
+        document.getElementById('speakerMatchDisp').innerHTML = `<span class="text-green-400">PASS (${data.speaker_distance.toFixed(2)})</span>`;
+    }
+
+    // Audio Quality & Confidence
+    const snr = data.audio_quality?.snr_db?.toFixed(1) || '--';
+    const conf = Math.round((data.confidence || 1.0) * 100);
+    const snrColor = data.audio_quality?.is_low_quality ? 'text-yellow-400' : 'text-gray-400';
+    document.getElementById('qualityInfo').innerHTML =
+        `<i class="fa-solid fa-signal ${snrColor}"></i> <span class="${snrColor} mr-2">SNR: ${snr}dB</span>
+         <i class="fa-solid fa-bullseye text-blue-400"></i> <span class="text-gray-400">Conf: ${conf}%</span>`;
+
     // Update decision ladder
     actionDisplay.innerText = data.action;
     recommendationDisplay.innerText = data.recommendation;
@@ -322,21 +347,16 @@ function clearLog() {
 recordBtn.addEventListener('click', async () => {
     if (!isRecording) {
         try {
-            // Request Microphone Access
+            // Request Microphone Access (simplified constraints for maximum compatibility)
             const stream = await navigator.mediaDevices.getUserMedia({
-                audio: {
-                    channelCount: 1,
-                    sampleRate: 16000,
-                    echoCancellation: true,
-                    noiseSuppression: true
-                }
+                audio: true // Removed strict sampleRate/channelCount constraints that break on some OS/hardware combinations
             });
 
             isRecording = true;
             sessionStartTime = Date.now();
 
-            // Enable waveform animation
-            waveform.style.opacity = '1';
+            // Enable waveform animation (safe check if UI element exists)
+            if (waveform) waveform.style.opacity = '1';
 
             // Create a loop to record distinct 2.5s chunks
             const recordLoop = () => {
@@ -372,8 +392,23 @@ recordBtn.addEventListener('click', async () => {
             statsInterval = setInterval(updateStatistics, 1000);
 
         } catch (err) {
-            alert('Microphone access is required. Please grant permission and try again.');
-            console.error('Microphone access error:', err);
+            // Detailed error reporting for microphone access
+            console.error('Microphone access error object:', err);
+            let errorMsg = 'Microphone access is required. ';
+
+            if (err.name === 'NotAllowedError') {
+                errorMsg += 'Permission was denied by the browser or OS.';
+            } else if (err.name === 'NotFoundError') {
+                errorMsg += 'No microphone could be found on this device.';
+            } else if (err.name === 'NotReadableError') {
+                errorMsg += 'Microphone is already in use by another application (like Zoom, Teams, or another tab).';
+            } else if (window.location.protocol === 'file:') {
+                errorMsg += 'Browsers block mics on file:/// URLs. Please run a local web server (e.g., python -m http.server 8080).';
+            } else {
+                errorMsg += `Detailed error: ${err.name} - ${err.message}`;
+            }
+
+            alert(errorMsg);
         }
     } else {
         // Stop Recording
@@ -387,7 +422,7 @@ recordBtn.addEventListener('click', async () => {
         recordBtn.classList.add('from-blue-600', 'to-blue-500', 'hover:from-blue-500', 'hover:to-blue-400');
 
         // Dim waveform
-        waveform.style.opacity = '0.3';
+        if (waveform) waveform.style.opacity = '0.3';
     }
 });
 
